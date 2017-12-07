@@ -3,7 +3,7 @@
 namespace LaravelFlatfiles;
 
 
-class FlatFileConfiguration
+class FlatfileConfiguration
 {
     protected $configuration;
 

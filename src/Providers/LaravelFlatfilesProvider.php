@@ -24,8 +24,8 @@ class LaravelFlatfilesProvider extends ServiceProvider
     {
         $this->publishConfiguration();
 
-        $this->app->bind(FlatFile::class, function (Application $app) {
-            return new FlatFile(new FlatFileConfiguration(config('flatfiles')));
+        $this->app->bind(Flatfile::class, function (Application $app) {
+            return new Flatfile(new FlatfileConfiguration(config('flatfiles')));
         });
     }
 
