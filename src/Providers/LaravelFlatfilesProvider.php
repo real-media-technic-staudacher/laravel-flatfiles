@@ -25,7 +25,7 @@ class LaravelFlatfilesProvider extends ServiceProvider
         $this->publishConfiguration();
 
         $this->app->bind(Flatfile::class, function (Application $app) {
-            return new Flatfile(new FlatfileConfiguration(config('flatfiles')));
+            return new Flatfile(new FlatfileConfiguration(config('flatfiles') ?: []));
         });
     }
 
@@ -51,5 +51,7 @@ class LaravelFlatfilesProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../../config/flatfiles.php' => config_path('flatfiles.php'),
         ], 'config');
+
+        $this->mergeConfigFrom(__DIR__.'/../../config/flatfiles.php', 'flatfiles');
     }
 }

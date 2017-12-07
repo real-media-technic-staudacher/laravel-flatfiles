@@ -14,4 +14,12 @@ return [
 
     'default' => env('FLATFILE_DRIVER', 'csv'),
 
+    'drivers' => [
+        'csv' => [
+            'charset'   => 'UTF-8',
+            'delimiter' => ';',
+            'enclosure' => '"',
+            'bom'       => false,
+        ],
+    ],
 ];
