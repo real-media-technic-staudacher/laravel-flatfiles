@@ -5,6 +5,7 @@
 
 namespace LaravelFlatfiles;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -21,6 +22,11 @@ class LaravelFlatfilesProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->publishConfiguration();
+
+        $this->app->bind(FlatFile::class, function (Application $app) {
+            return new FlatFile(new FlatFileConfiguration(config('flatfiles')));
+        });
     }
 
     /**
@@ -40,4 +46,10 @@ class LaravelFlatfilesProvider extends ServiceProvider
         ]);
     }
 
+    private function publishConfiguration()
+    {
+        $this->publishes([
+            __DIR__.'/../../config/flatfiles.php' => config_path('flatfiles.php'),
+        ], 'config');
+    }
 }
