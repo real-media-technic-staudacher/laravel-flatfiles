@@ -1,0 +1,39 @@
+{
+  "name": "real-media-technic-staudacher/laravel-flatfiles",
+  "description": "Export and import flatfiles with Laravel like charm",
+  "keywords": [
+    "framework",
+    "scoop",
+    "os",
+    "laravel",
+    "export",
+    "import",
+    "flatfile"
+  ],
+  "license": "MIT",
+  "type": "project",
+  "require": {
+    "php": ">=7.0.0",
+    "laravel/framework": "5.5.*",
+    "league/csv": "^9.0"
+  },
+  "require-dev": {
+  },
+  "autoload": {
+    "psr-4": {
+      "LaravelFlatfiles\\": "src"
+    }
+  },
+  "config": {
+    "preferred-install": "dist"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "LaravelFlatfiles\\LaravelFlatfilesProvider"
+      ],
+      "aliases": {
+      }
+    }
+  }
+}
