@@ -23,35 +23,48 @@ class Flatfile
     /** @var Writer $writer */
     protected $writer;
 
-    /** @var String $relativePathToFileOnDisk */
-    protected $relativePathToFileOnDisk;
+    /** @var String $pathToFileOnDisk */
+    protected $pathToFileOnDisk;
 
     /** @var callable|null */
     protected $beforeEachRowCallback;
 
-    public function __construct(FlatfileConfiguration $configuration)
+    public function __construct(FlatfileConfiguration $configuration, FlatfileFields $fields = null)
     {
         $this->configuration = $configuration;
+
+        if ($fields !== null) {
+            $this->withFields($fields);
+        }
     }
 
-    public function withFields($exportFields)
+    public function withFields(FlatfileFields $flatfileFields)
     {
-        $this->configuration->fields($exportFields);
+        $this->configuration->fields($flatfileFields->fields());
 
         return $this;
     }
 
-    public function exportToFile(FilesystemAdapter $disk, String $targetFilename)
+    public function exportToFileAtPath(String $absoluteFilepath)
     {
-        if ($disk->exists($targetFilename)) {
-            throw new \RuntimeException('Target export file exists already');
+        if (file_exists($absoluteFilepath)) {
+            throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        $this->disk($disk)->pathToFileOnDisk($targetFilename);
+        if (!file_exists(dirname($absoluteFilepath))) {
+            mkdir($absoluteFilepath, 0777, true);
+        }
 
-        $this->writer = $this->detectDefaultWriter($targetFilename);
+        return $this->pathToFile($absoluteFilepath)->determineDefaultWriter();
+    }
 
-        return $this;
+    public function exportToFileOnDisk(FilesystemAdapter $disk, String $targetFilename)
+    {
+        if ($disk->exists($targetFilename)) {
+            throw new \RuntimeException('Target export file already exists at: '.$targetFilename);
+        }
+
+        return $this->disk($disk)->pathToFile($targetFilename)->determineDefaultWriter();
     }
 
     public function beforeEachRow(callable $callback)
@@ -66,22 +79,30 @@ class Flatfile
      */
     public function addRows(Collection $models)
     {
-        $columns = $this->configuration->columns();
-
-        $this->makeModelAttributesVisible($models, $columns);
-
         foreach ($models as $model) {
-            if (false === $this->applyRowCallback($model)) {
-                continue;
+            $this->addRow($model);
+        }
+    }
+
+    public function addRow(Model $model)
+    {
+        if (false === $this->applyRowCallback($model)) {
+            return;
+        }
+
+        $dataAsArray = $this->makeModelAttributesVisible($model)->toArray();
+
+        // Grap values for eacho column from arrayed model (including relations)
+        $this->writer->insertOne($this->configuration->fields()->map(function (array $fieldData) use ($dataAsArray) {
+            // Get value from arrayed model by column defintion
+            $value = Arr::get($dataAsArray, Arr::get($fieldData, 'column'));
+
+            if ($callback = Arr::get($fieldData, 'callback')) {
+                $value = $callback($value) ?? $value;
             }
 
-            $dataAsArray = $model->toArray();
-
-            // Grap values for eacho column from arrayed model (including relations)
-            $this->writer->insertOne(collect($columns)->map(function ($column) use ($dataAsArray) {
-                return Arr::get($dataAsArray, $column);
-            })->toArray());
-        }
+            return $value;
+        })->toArray());
     }
 
     public function addHeader()
@@ -92,32 +113,41 @@ class Flatfile
     public function moveToDisk()
     {
         // TODO: Write as stream?
-        $this->disk()->put($this->pathToFileOnDisk(), (string)$this->writer);
+        $this->disk()->put($this->pathToFile(), (string)$this->writer);
     }
 
-    private function detectDefaultWriter($targetFilename)
+    private function determineDefaultWriter()
     {
-        switch ($extenstion = Str::lower(pathinfo($targetFilename, PATHINFO_EXTENSION))) {
+        $writer = null;
+
+        switch ($extenstion = Str::lower(pathinfo($this->pathToFile(), PATHINFO_EXTENSION))) {
             case 'csv':
-                $writer = Writer::createFromFileObject(new SplTempFileObject);
-//                $writer->setInputEncoding($this->configuration->get('csv', 'charset'));
+                if ($this->usesDisk()) {
+                    $writer = Writer::createFromFileObject(new SplTempFileObject);
+                } else {
+                    $writer = Writer::createFromPath($this->pathToFile(), 'w+');
+                }
                 $writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
                 $writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Reader::BOM_UTF8 : '');
 
-                return $writer;
+                break;
             default:
                 throw new \RuntimeException('Unsupported file type: .'.$extenstion);
         }
+
+        $this->writer = $writer;
+
+        return $this;
     }
 
-    public function pathToFileOnDisk(String $relativePathToFileOnDisk = null)
+    public function pathToFile(String $relativePathToFileOnDisk = null)
     {
         if (is_null($relativePathToFileOnDisk)) {
-            return $this->relativePathToFileOnDisk;
+            return $this->pathToFileOnDisk;
         }
 
-        $this->relativePathToFileOnDisk = $relativePathToFileOnDisk;
+        $this->pathToFileOnDisk = $relativePathToFileOnDisk;
 
         return $this;
     }
@@ -133,15 +163,6 @@ class Flatfile
         return $this;
     }
 
-    private function makeModelAttributesVisible(Collection $models, array $fields)
-    {
-        $models->each(function ($model) use ($fields) {
-            if ($model instanceof Model) {
-                $model->makeVisible($fields);
-            }
-        });
-    }
-
     private function applyRowCallback(&$model)
     {
         $callback = $this->beforeEachRowCallback;
@@ -151,5 +172,15 @@ class Flatfile
         }
 
         return true;
+    }
+
+    private function makeModelAttributesVisible(Model $model): Model
+    {
+        return $model->makeVisible($this->configuration->columns());
+    }
+
+    private function usesDisk()
+    {
+        return $this->disk() !== null;
     }
 }

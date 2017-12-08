@@ -6,14 +6,15 @@
 namespace LaravelFlatfiles;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Class LaravelFlatfilesProvider
+ * Class LaravelFlatfilesServiceProvider
  *
  * @package LaravelFlatfiles
  */
-class LaravelFlatfilesProvider extends ServiceProvider
+class LaravelFlatfilesServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
@@ -24,8 +25,11 @@ class LaravelFlatfilesProvider extends ServiceProvider
     {
         $this->publishConfiguration();
 
-        $this->app->bind(Flatfile::class, function (Application $app) {
-            return new Flatfile(new FlatfileConfiguration(config('flatfiles') ?: []));
+        $this->app->bind(Flatfile::class, function (Application $app, $parameters) {
+            $config = new FlatfileConfiguration(config('flatfiles') ?: []);
+            $fields = Arr::get($parameters, 'fields', Arr::first($parameters));
+
+            return new Flatfile($config, $fields);
         });
     }
 

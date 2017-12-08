@@ -29,31 +29,34 @@ class FlatfileConfiguration
             return $this->fields;
         }
 
-        $this->fields = collect($fields);
+        // Normalize the different ways to make field specifications
+        $this->fields = collect($fields)->map(function ($value, $key) {
+            if (is_array($value)) {
+                if (!Arr::exists($value, 'column')) {
+                    return Arr::add($value, 'column', $key);
+                }
+
+                return $value;
+            }
+
+            return [
+                'column'   => $key,
+                'label'    => $value,
+                'callback' => null,
+            ];
+        });
 
         return $this;
     }
 
     public function fieldLabels(): array
     {
-        return $this->fields()->values()->map(function ($fieldValue) {
-            if (is_array($fieldValue)) {
-                return $fieldValue['label'];
-            }
-
-            return $fieldValue;
-        })->toArray();
+        return $this->fields()->pluck('label')->toArray();
     }
 
     public function columns(): array
     {
-        return $this->fields()->map(function ($fieldValue, $fieldColumn) {
-            if (is_array($fieldValue)) {
-                return $fieldValue['column'];
-            }
-
-            return $fieldColumn;
-        })->values()->toArray();
+        return $this->fields()->pluck('column')->toArray();
     }
 
     public function get($driver, $key, $default = null)
