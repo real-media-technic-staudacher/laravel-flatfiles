@@ -64,7 +64,7 @@ class Flatfile
     /**
      * @param Collection|Model[] $models
      */
-    public function push(Collection $models)
+    public function addRows(Collection $models)
     {
         $columns = $this->configuration->columns();
 
@@ -75,11 +75,11 @@ class Flatfile
                 continue;
             }
 
-            $data = $model->toArray();
+            $dataAsArray = $model->toArray();
 
             // Grap values for eacho column from arrayed model (including relations)
-            $this->writer->insertOne(collect($columns)->map(function ($column) use ($data) {
-                return Arr::get($data, $column);
+            $this->writer->insertOne(collect($columns)->map(function ($column) use ($dataAsArray) {
+                return Arr::get($dataAsArray, $column);
             })->toArray());
         }
     }
