@@ -13,7 +13,7 @@ trait CreatesApplication
      */
     public function createApplication()
     {
-        $app = require __DIR__.'/../vendort/autoload.php';
+        $app = require __DIR__.'/../vendor/autoload.php';
 
         $app->make(Kernel::class)->bootstrap();
 
