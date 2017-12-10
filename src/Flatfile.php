@@ -163,6 +163,11 @@ class Flatfile
         return $this;
     }
 
+    public function configuration()
+    {
+        return $this->configuration;
+    }
+
     private function applyRowCallback(&$model)
     {
         $callback = $this->beforeEachRowCallback;

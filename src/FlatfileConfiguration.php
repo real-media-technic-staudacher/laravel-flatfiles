@@ -41,8 +41,7 @@ class FlatfileConfiguration
 
             return [
                 'column'   => $key,
-                'label'    => $value,
-                'callback' => null,
+                'label'    => $value
             ];
         });
 
