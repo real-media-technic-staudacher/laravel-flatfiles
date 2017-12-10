@@ -2,7 +2,6 @@
 
 namespace LaravelFlatfiles;
 
-
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
@@ -32,7 +31,7 @@ class FlatfileConfiguration
         // Normalize the different ways to make field specifications
         $this->fields = collect($fields)->map(function ($value, $key) {
             if (is_array($value)) {
-                if (!Arr::exists($value, 'column')) {
+                if (! Arr::exists($value, 'column')) {
                     return Arr::add($value, 'column', $key);
                 }
 
@@ -41,7 +40,7 @@ class FlatfileConfiguration
 
             return [
                 'column'   => $key,
-                'label'    => $value
+                'label'    => $value,
             ];
         });
 

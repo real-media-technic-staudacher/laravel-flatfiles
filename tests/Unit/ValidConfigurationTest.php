@@ -3,10 +3,8 @@
 namespace LaravelFlatfilesTest\Unit;
 
 use LaravelFlatfiles\Flatfile;
-use LaravelFlatfiles\FlatfileFields;
 use LaravelFlatfilesTest\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use LaravelFlatfiles\FlatfileFields;
 
 class ValidConfigurationTest extends TestCase implements FlatfileFields
 {
@@ -21,12 +19,12 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
                 'label' => 'Custom label',
                 'callback' => function ($field) {
                     return $field;
-                }
+                },
             ],
             [
                 'column' => 'special.field',
                 'label' => 'Special Label',
-            ]
+            ],
         ];
     }
 
@@ -43,18 +41,18 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
         $this->assertEquals([
             [
                 'column' => 'field',
-                'label' => 'Label'
+                'label' => 'Label',
             ],
             [
                 'column' => 'relation.field',
                 'label' => 'Custom label',
                 'callback' => function ($field) {
                     return $field;
-                }
+                },
             ],
             [
                 'column' => 'special.field',
-                'label' => 'Special Label'
+                'label' => 'Special Label',
             ],
         ], $this->flatfile->configuration()->fields()->values()->toArray());
     }
@@ -70,5 +68,4 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
     {
         $this->assertEquals(['Label', 'Custom label', 'Special Label'], $this->flatfile->configuration()->fieldLabels());
     }
-
 }

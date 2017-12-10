@@ -1,18 +1,16 @@
 <?php
 /**
- * Copyright (c) 2015-2017  real media technic staudacher
+ * Copyright (c) 2015-2017  real media technic staudacher.
  */
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Arr;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Class LaravelFlatfilesServiceProvider
- *
- * @package LaravelFlatfiles
+ * Class LaravelFlatfilesServiceProvider.
  */
 class LaravelFlatfilesServiceProvider extends ServiceProvider
 {
@@ -45,7 +43,7 @@ class LaravelFlatfilesServiceProvider extends ServiceProvider
 
     private function registerCommands()
     {
-        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
+        /* @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         $this->commands([//            \LaravelFlatfiles\Command::class,
         ]);
     }
