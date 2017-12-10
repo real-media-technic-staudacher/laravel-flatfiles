@@ -2,7 +2,7 @@
 
 namespace LaravelFlatfilesTest\Feature;
 
-use Tests\TestCase;
+use LaravelFlatfilesTest\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ExampleTest extends TestCase

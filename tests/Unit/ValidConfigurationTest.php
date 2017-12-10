@@ -4,7 +4,7 @@ namespace LaravelFlatfilesTest\Unit;
 
 use LaravelFlatfiles\Flatfile;
 use LaravelFlatfiles\FlatfileFields;
-use Tests\TestCase;
+use LaravelFlatfilesTest\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
