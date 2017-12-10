@@ -3,7 +3,6 @@
 
 [![](https://img.shields.io/github/issues-raw/real-media-technic-staudacher/laravel-flatfiles/shields.svg)]()
 [![TravisCI](https://img.shields.io/travis/real-media-technic-staudacher/laravel-flatfiles.svg)](https://travis-ci.org/real-media-technic-staudacher/laravel-flatfiles)
-[![GitHub issue last update](https://img.shields.io/github/issues/detail/last-update/real-media-technic-staudacher/laravel-flatfiles/shields/979.svg)]()
 
 
 ## Installation
