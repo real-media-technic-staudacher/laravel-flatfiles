@@ -25,6 +25,11 @@
       "LaravelFlatfiles\\": "src"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "LaravelFlatfilesTest\\": "tests",
+    },
+  },
   "config": {
     "preferred-install": "dist"
   },

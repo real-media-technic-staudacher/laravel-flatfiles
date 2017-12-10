@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit;
+namespace LaravelFlatfilesTest\Unit;
 
 use LaravelFlatfiles\Flatfile;
 use LaravelFlatfiles\FlatfileFields;

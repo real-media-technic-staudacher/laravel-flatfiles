@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests;
+namespace LaravelFlatfilesTest;
 
 use Illuminate\Contracts\Console\Kernel;
 
