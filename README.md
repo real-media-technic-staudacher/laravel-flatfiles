@@ -1,7 +1,11 @@
 # Export and import flatfiles with Laravel like charm
 
 
+[![](https://img.shields.io/github/issues-raw/badges/shields.svg?style=social)]()
 [![TravisCI](https://img.shields.io/travis/real-media-technic-staudacher/laravel-flatfiles.svg)](https://travis-ci.org/real-media-technic-staudacher/laravel-flatfiles)
+[![GitHub issue last update](https://img.shields.io/github/issues/detail/last-update/badges/shields/979.svg?style=social)]()
+[![Github file size](https://img.shields.io/github/size/webcaetano/craft/build/phaser-craft.min.js.svg?style=social)]()
+
 
 ## Installation
 
