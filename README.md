@@ -1,7 +1,7 @@
 # Export and import flatfiles with Laravel like charm
 
 
-[![TravisCI](https://img.shields.io/travis/real-media-technic-staudacher/laravel-flatfiles.svg?style=social)](https://travis-ci.org/real-media-technic-staudacher/laravel-flatfiles)
+[![TravisCI](https://img.shields.io/travis/real-media-technic-staudacher/laravel-flatfiles.svg)](https://travis-ci.org/real-media-technic-staudacher/laravel-flatfiles)
 
 ## Installation
 
