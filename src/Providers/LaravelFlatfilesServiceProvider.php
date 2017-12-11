@@ -5,9 +5,11 @@
 
 namespace LaravelFlatfiles\Providers;
 
-use Illuminate\Support\Arr;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
+use LaravelFlatfiles\Flatfile;
+use LaravelFlatfiles\FlatfileConfiguration;
 
 /**
  * Class LaravelFlatfilesServiceProvider.
