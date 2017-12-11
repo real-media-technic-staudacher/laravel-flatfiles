@@ -12,3 +12,6 @@ before_script:
 
 script:
   - vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
+
+notifications:
+  slack: staudacher-dev:c5UQEs1buOwFmCTN39Gp95Gg
