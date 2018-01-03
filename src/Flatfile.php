@@ -2,14 +2,14 @@
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use League\Csv\Reader;
 use League\Csv\Writer;
 use SplTempFileObject;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 class Flatfile
 {
@@ -45,7 +45,7 @@ class Flatfile
     }
 
     /**
-     * @param String $absoluteFilepath
+     * @param string $absoluteFilepath
      *
      * @return $this
      * @throws \League\Csv\Exception
@@ -56,7 +56,7 @@ class Flatfile
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (!file_exists(dirname($absoluteFilepath))) {
+        if (! file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
@@ -65,7 +65,7 @@ class Flatfile
 
     /**
      * @param FilesystemAdapter $disk
-     * @param String            $targetFilename
+     * @param string            $targetFilename
      *
      * @return $this
      * @throws \League\Csv\Exception
@@ -136,7 +136,7 @@ class Flatfile
     public function moveToDisk()
     {
         // TODO: Write as stream?
-        $this->disk()->put($this->pathToFile(), (string)$this->writer);
+        $this->disk()->put($this->pathToFile(), (string) $this->writer);
     }
 
     /**
