@@ -27,8 +27,8 @@ You need to define an array of fields. See Field definitions later on. This will
         [
             'column'   => 'relation.relation_name', // Access relations
             'label'    => 'Label with special characters',
-            'callback' => function ($value) { // Format cell values
-                return '$ '.number_format($value);
+            'callback' => function ($value, $model) { // Format cell values
+                return $model->currencySign.' '.number_format($value);
             }
         ]
     ]
@@ -39,7 +39,7 @@ This works as well
     $fields = [
         'column_name' => [ // Column name can also still be the key of the array
             'label'    => 'Label with special characters',
-            'callback' => function ($value) {}
+            'callback' => function ($value, $model) {}
         ]
     ]
 ```

@@ -2,14 +2,14 @@
 
 namespace LaravelFlatfiles;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use League\Csv\Reader;
 use League\Csv\Writer;
 use SplTempFileObject;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemAdapter;
 
 class Flatfile
 {
@@ -44,19 +44,32 @@ class Flatfile
         return $this;
     }
 
+    /**
+     * @param String $absoluteFilepath
+     *
+     * @return $this
+     * @throws \League\Csv\Exception
+     */
     public function exportToFileAtPath(String $absoluteFilepath)
     {
         if (file_exists($absoluteFilepath)) {
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (! file_exists(dirname($absoluteFilepath))) {
+        if (!file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
         return $this->pathToFile($absoluteFilepath)->determineDefaultWriter();
     }
 
+    /**
+     * @param FilesystemAdapter $disk
+     * @param String            $targetFilename
+     *
+     * @return $this
+     * @throws \League\Csv\Exception
+     */
     public function exportToFileOnDisk(FilesystemAdapter $disk, String $targetFilename)
     {
         if ($disk->exists($targetFilename)) {
@@ -75,6 +88,8 @@ class Flatfile
 
     /**
      * @param Collection|Model[] $models
+     *
+     * @throws \League\Csv\CannotInsertRecord
      */
     public function addRows(Collection $models)
     {
@@ -83,27 +98,36 @@ class Flatfile
         }
     }
 
+    /**
+     * @param Model $model
+     *
+     * @throws \League\Csv\CannotInsertRecord
+     */
     public function addRow(Model $model)
     {
         if (false === $this->applyRowCallback($model)) {
             return;
         }
 
+        $fields = $this->configuration->fields();
         $dataAsArray = $this->makeModelAttributesVisible($model)->toArray();
 
         // Grap values for eacho column from arrayed model (including relations)
-        $this->writer->insertOne($this->configuration->fields()->map(function (array $fieldData) use ($dataAsArray) {
+        $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
             // Get value from arrayed model by column defintion
-            $value = Arr::get($dataAsArray, Arr::get($fieldData, 'column'));
+            $value = Arr::get($dataAsArray, Arr::get($fieldConfigData, 'column'));
 
-            if ($callback = Arr::get($fieldData, 'callback')) {
-                $value = $callback($value) ?? $value;
+            if ($callback = Arr::get($fieldConfigData, 'callback')) {
+                $value = $callback($value, $model) ?? $value;
             }
 
             return $value;
         })->toArray());
     }
 
+    /**
+     * @throws \League\Csv\CannotInsertRecord
+     */
     public function addHeader()
     {
         $this->writer->insertOne($this->configuration->fieldLabels());
@@ -112,9 +136,13 @@ class Flatfile
     public function moveToDisk()
     {
         // TODO: Write as stream?
-        $this->disk()->put($this->pathToFile(), (string) $this->writer);
+        $this->disk()->put($this->pathToFile(), (string)$this->writer);
     }
 
+    /**
+     * @return $this
+     * @throws \League\Csv\Exception
+     */
     private function determineDefaultWriter()
     {
         $writer = null;
