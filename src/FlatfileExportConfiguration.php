@@ -5,7 +5,7 @@ namespace LaravelFlatfiles;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
-class FlatfileConfiguration
+class FlatfileExportConfiguration
 {
     public $configuration;
 

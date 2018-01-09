@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "LaravelFlatfiles\\Providers\\LaravelFlatfilesServiceProvider"
+        "LaravelFlatfiles\\FlatfileExportServiceProvider"
       ],
       "aliases": {
       }

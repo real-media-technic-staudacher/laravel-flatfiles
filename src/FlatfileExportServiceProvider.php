@@ -1,20 +1,18 @@
 <?php
 /**
- * Copyright (c) 2015-2017  real media technic staudacher.
+ * Copyright (c) 2015-2018  real media technic staudacher.
  */
 
-namespace LaravelFlatfiles\Providers;
+namespace LaravelFlatfiles;
 
-use Illuminate\Support\Arr;
-use LaravelFlatfiles\Flatfile;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
-use LaravelFlatfiles\FlatfileConfiguration;
 
 /**
- * Class LaravelFlatfilesServiceProvider.
+ * Class FlatfileExportServiceProvider.
  */
-class LaravelFlatfilesServiceProvider extends ServiceProvider
+class FlatfileExportServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap any application services.
@@ -25,11 +23,11 @@ class LaravelFlatfilesServiceProvider extends ServiceProvider
     {
         $this->publishConfiguration();
 
-        $this->app->bind(Flatfile::class, function (Application $app, $parameters) {
-            $config = new FlatfileConfiguration(config('flatfiles') ?: []);
+        $this->app->bind(FlatfileExport::class, function (Application $app, $parameters) {
+            $config = new FlatfileExportConfiguration(config('flatfiles') ?: []);
             $fields = Arr::get($parameters, 'fields', Arr::first($parameters));
 
-            return new Flatfile($config, $fields);
+            return new FlatfileExport($config, $fields);
         });
     }
 
@@ -53,9 +51,9 @@ class LaravelFlatfilesServiceProvider extends ServiceProvider
     private function publishConfiguration()
     {
         $this->publishes([
-            __DIR__.'/../../config/flatfiles.php' => config_path('flatfiles.php'),
+            __DIR__.'/../config/flatfiles.php' => config_path('flatfiles.php'),
         ], 'config');
 
-        $this->mergeConfigFrom(__DIR__.'/../../config/flatfiles.php', 'flatfiles');
+        $this->mergeConfigFrom(__DIR__.'/../config/flatfiles.php', 'flatfiles');
     }
 }

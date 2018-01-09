@@ -2,13 +2,13 @@
 
 namespace LaravelFlatfilesTest\Unit;
 
-use LaravelFlatfiles\Flatfile;
+use LaravelFlatfiles\FlatfileExport;
 use LaravelFlatfilesTest\TestCase;
 use LaravelFlatfiles\FlatfileFields;
 
 class ValidConfigurationTest extends TestCase implements FlatfileFields
 {
-    /** @var Flatfile $flatfile */
+    /** @var FlatfileExport $flatfile */
     protected $flatfile;
 
     public function fields()
@@ -32,7 +32,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
     {
         parent::setUp();
 
-        $this->flatfile = app(Flatfile::class, ['fields' => $this]);
+        $this->flatfile = app(FlatfileExport::class, ['fields' => $this]);
     }
 
     /** @test */
