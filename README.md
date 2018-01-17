@@ -1,5 +1,4 @@
-# Export and import flatfiles with Laravel like charm
-
+# Export Eloquent queries to flatfiles using simple configuration
 
 [![](https://img.shields.io/github/issues-raw/real-media-technic-staudacher/laravel-flatfiles/shields.svg)]()
 [![TravisCI](https://img.shields.io/travis/real-media-technic-staudacher/laravel-flatfiles.svg)](https://travis-ci.org/real-media-technic-staudacher/laravel-flatfiles)
