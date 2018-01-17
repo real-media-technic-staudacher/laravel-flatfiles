@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Support to add Collection to addRow() to be used in custom queries
+
 ### Changed
-- Added `withoutTempFile()`
 - Callbacks now also get the complete "row"-model to process cross-column informations: `function ($value, $model) {}`
 
 [Unreleased]: https://github.com/real-media-technic-staudacher/laravel-flatfiles/commits/master

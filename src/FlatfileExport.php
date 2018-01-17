@@ -125,11 +125,11 @@ class FlatfileExport
     }
 
     /**
-     * @param Model $model
+     * @param Model|Collection $model
      *
      * @throws \League\Csv\CannotInsertRecord
      */
-    public function addRow(Model $model)
+    public function addRow($model)
     {
         if (false === $this->applyRowCallback($model)) {
             return;
@@ -137,6 +137,7 @@ class FlatfileExport
 
         $fields = $this->configuration->fields();
         $dataAsArray = $this->makeModelAttributesVisible($model)->toArray();
+
 
         // Grap values for eacho column from arrayed model (including relations)
         $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
@@ -157,16 +158,6 @@ class FlatfileExport
     public function addHeader()
     {
         $this->writer->insertOne($this->configuration->fieldLabels());
-    }
-
-    /**
-     * Skips the generation of a temporary file. Dont call moveToTarget() in this case because its not needed
-     *
-     * @return FlatfileExport
-     */
-    public function withoutTempFile()
-    {
-        return $this->usingLocalTmpFile($this->pathToFile());
     }
 
     public function moveToTarget()
@@ -247,8 +238,17 @@ class FlatfileExport
         return true;
     }
 
-    private function makeModelAttributesVisible(Model $model): Model
+    /**
+     * @param Model|Collection $model
+     *
+     * @return Model|Collection
+     */
+    private function makeModelAttributesVisible($model)
     {
+        if (!($model instanceof Model)) {
+            return $model;
+        }
+
         return $model->makeVisible($this->configuration->columns());
     }
 

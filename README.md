@@ -109,7 +109,6 @@ With this ingredients you can easily do a flatfile export.
 
 - This enables you to export to all available filesystem drivers
 - Exports are generated locally/temporary first and than copied to disk (you have to trigger this explicitely)
-- You can skip generation of a temporary file by calling `$flatfile->withoutTempFile()`. Dont call `moveToDisk()` in this case
 
 ```php
     $flatfile->to(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');

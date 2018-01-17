@@ -30,19 +30,31 @@ class FlatfileExportConfiguration
 
         // Normalize the different ways to make field specifications
         $this->fields = collect($fields)->map(function ($value, $key) {
+            $callback = null;
+
             if (is_array($value)) {
-                if (! Arr::exists($value, 'column')) {
+                if (!Arr::exists($value, 'column')) {
                     return Arr::add($value, 'column', $key);
                 }
 
                 return $value;
             }
 
+            if (is_callable($value)) {
+                $callback = $value;
+                $value = $key;
+            }
+
+            if (is_numeric($key)) {
+                $key = $value;
+            }
+
             return [
                 'column'   => $key,
                 'label'    => $value,
+                'callback' => $callback,
             ];
-        });
+        })->values();
 
         return $this;
     }
