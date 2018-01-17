@@ -84,7 +84,7 @@ or
 
 Resolved from container and connected to your field definition
 ```php
-    public function handle(Flatfile $flatfile) {
+    public function handle(FlatfileExport $flatfile) {
         $flatfile->withFields($this); // If your class directly implements the FlatfileFields-interface
     }
 ```
@@ -93,10 +93,10 @@ or
 
 ```php
     // Resolve by yourself
-    $flatfile = app(Flatfile::class, ['fields' => $this]);
+    $flatfile = app(FlatfileExport::class, ['fields' => $this]);
     
     // There is a fallback for lazy people as well 
-    $flatfile = app(Flatfile::class, [$this]);
+    $flatfile = app(FlatfileExport::class, [$this]);
 ```
     
 ### Export
@@ -135,7 +135,7 @@ With this ingredients you can easily do a flatfile export.
 ```php
     public function handle()
     {
-        $flatfile = app(Flatfile::class, [$this]);
+        $flatfile = app(FlatfileExport::class, [$this]);
         $flatfile->exportToFileAtPath($this->csvFilepath);
 
         // Proposed way to step through a large result set
