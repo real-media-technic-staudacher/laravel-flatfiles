@@ -111,7 +111,7 @@ With this ingredients you can easily do a flatfile export.
 - Exports are generated locally/temporary first and than copied to disk (you have to trigger this explicitely)
 
 ```php
-    $flatfile->exportToFileOnDisk(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');
+    $flatfile->to(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');
     
     // Do your export ...
     
@@ -124,7 +124,7 @@ With this ingredients you can easily do a flatfile export.
 - It will not generated in a temporary file first
 
 ```php
-    $flatfile->exportToFileAtPath('absolute/path/to/file-with-extension.csv');
+    $flatfile->toFile('absolute/path/to/file-with-extension.csv');
 ```
 
 #### Add rows to export file
@@ -136,7 +136,7 @@ With this ingredients you can easily do a flatfile export.
     public function handle()
     {
         $flatfile = app(FlatfileExport::class, [$this]);
-        $flatfile->exportToFileAtPath($this->csvFilepath);
+        $flatfile->toFile($this->csvFilepath);
 
         // Proposed way to step through a large result set
         $this->queryToSelectEachRow()->chunk(500, function ($chunk) use ($flatfile) {
