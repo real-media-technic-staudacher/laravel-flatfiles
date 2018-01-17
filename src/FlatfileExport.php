@@ -159,10 +159,20 @@ class FlatfileExport
         $this->writer->insertOne($this->configuration->fieldLabels());
     }
 
+    /**
+     * Skips the generation of a temporary file. Dont call moveToTarget() in this case because its not needed
+     *
+     * @return FlatfileExport
+     */
+    public function withoutTempFile()
+    {
+        return $this->usingLocalTmpFile($this->pathToFile());
+    }
+
     public function moveToTarget()
     {
         $this->disk()->putStream($this->pathToFile(), fopen($this->pathToLocalTmpFile, 'r'));
-        
+
         unlink($this->pathToLocalTmpFile);
     }
 
