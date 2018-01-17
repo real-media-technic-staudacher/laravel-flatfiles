@@ -7,8 +7,8 @@
 
 ## Installation
 
-tbd
-
+    composer require real-media-technic-staudacher/laravel-flatfiles:dev-master
+    
 ## Configuration
 
 ### Define fields
