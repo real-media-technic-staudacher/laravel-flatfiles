@@ -49,10 +49,17 @@ class FlatfileExportConfiguration
                 $key = $value;
             }
 
+            if ($callback) {
+                return [
+                    'column'   => $key,
+                    'label'    => $value,
+                    'callback' => $callback,
+                ];
+            }
+
             return [
-                'column'   => $key,
-                'label'    => $value,
-                'callback' => $callback,
+                'column' => $key,
+                'label'  => $value,
             ];
         })->values();
 
