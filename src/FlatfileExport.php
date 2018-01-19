@@ -2,13 +2,13 @@
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use League\Csv\Writer;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 class FlatfileExport
 {
@@ -53,8 +53,8 @@ class FlatfileExport
     }
 
     /**
-     * @param String                   $targetFilename
-     * @param FilesystemAdapter|String $disk The disk object or the name of it
+     * @param string                   $targetFilename
+     * @param FilesystemAdapter|string $disk The disk object or the name of it
      *
      * @return FlatfileExport
      * @throws \League\Csv\Exception
@@ -86,7 +86,7 @@ class FlatfileExport
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (!file_exists(dirname($absoluteFilepath))) {
+        if (! file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
@@ -100,7 +100,7 @@ class FlatfileExport
      * You can set a file location for the temporary file used to generate the export file. It's only locally, because
      * we're using a streaming API.
      *
-     * @param String $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
+     * @param string $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
      *
      * @return $this
      */
@@ -144,7 +144,6 @@ class FlatfileExport
         $fields = $this->configuration->fields();
         $dataAsArray = $this->makeModelAttributesVisible($model)->toArray();
 
-
         // Grap values for eacho column from arrayed model (including relations)
         $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
             // Get value from arrayed model by column defintion
@@ -185,7 +184,7 @@ class FlatfileExport
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
-                if (!$this->pathToLocalTmpFile) {
+                if (! $this->pathToLocalTmpFile) {
                     if ($this->usesDisk()) {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     } else {
@@ -253,7 +252,7 @@ class FlatfileExport
      */
     private function makeModelAttributesVisible($model)
     {
-        if (!($model instanceof Model)) {
+        if (! ($model instanceof Model)) {
             return $model;
         }
 
@@ -267,7 +266,7 @@ class FlatfileExport
 
     private function addBomIfNeeded()
     {
-        if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
+        if ($this->bomNeedsToBeAdded && ! $this->checkbom()) {
             file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
             $this->bomNeedsToBeAdded = false;
         }
@@ -276,7 +275,7 @@ class FlatfileExport
     public function checkbom()
     {
         $str = file_get_contents($this->pathToLocalTmpFile);
-        $bom = pack("CCC", 0xef, 0xbb, 0xbf);
+        $bom = pack('CCC', 0xef, 0xbb, 0xbf);
 
         return 0 === strncmp($str, $bom, 3);
     }

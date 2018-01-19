@@ -33,7 +33,7 @@ class FlatfileExportConfiguration
             $callback = null;
 
             if (is_array($value)) {
-                if (!Arr::exists($value, 'column')) {
+                if (! Arr::exists($value, 'column')) {
                     return Arr::add($value, 'column', $key);
                 }
 
