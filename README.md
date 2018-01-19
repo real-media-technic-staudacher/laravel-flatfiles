@@ -41,9 +41,6 @@ class ExportJob implements ShouldQueue, FlatfileFields
     // If so, it use this field definition by default
     public function handle(FlatfileExport $flatfile, $exportFilepath = '/var/www/html/storage/export.csv')
     {
-        // Initialize Exporter with current class holding the field definitions in field()-method. See later.
-        $flatfile = app(FlatfileExport::class, [$this]);
-    
         // Expose where to export the file. Based on file extension (ie. .csv) we select the proper exporter for you)
         $flatfile->toFile($exportFilepath, $replaceIfExisting = true);
     
