@@ -76,13 +76,21 @@ class FlatfileExport
 
     /**
      * @param string $absoluteFilepath
+     * @param bool   $replace
      *
      * @return $this
      * @throws \League\Csv\Exception
      */
-    public function toFile(String $absoluteFilepath)
+    public function toFile(String $absoluteFilepath, $replace = false)
     {
-        if (file_exists($absoluteFilepath)) {
+        $fileExists = file_exists($absoluteFilepath);
+
+        if ($replace && $fileExists) {
+            \Log::debug('Delete existing export file: '.$absoluteFilepath);
+            unlink($absoluteFilepath);
+        }
+
+        if ($fileExists) {
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
