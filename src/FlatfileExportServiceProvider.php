@@ -5,8 +5,8 @@
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Support\Arr;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -26,6 +26,10 @@ class FlatfileExportServiceProvider extends ServiceProvider
         $this->app->bind(FlatfileExport::class, function (Application $app, $parameters) {
             $config = new FlatfileExportConfiguration(config('flatfiles') ?: []);
             $fields = Arr::get($parameters, 'fields', Arr::first($parameters));
+
+            if (!$fields) {
+                $fields = $this->fieldsFromAutoInjectingClass(debug_backtrace());
+            }
 
             return new FlatfileExport($config, $fields);
         });
@@ -55,5 +59,32 @@ class FlatfileExportServiceProvider extends ServiceProvider
         ], 'config');
 
         $this->mergeConfigFrom(__DIR__.'/../config/flatfiles.php', 'flatfiles');
+    }
+
+    /**
+     * @param $debugBacktrace
+     *
+     * @return FlatfileFields|null
+     */
+    private function fieldsFromAutoInjectingClass($debugBacktrace)
+    {
+        return collect($debugBacktrace)->transform(function ($item) {
+            // Auto injection detected?
+            if ('getMethodDependencies' != array_get($item, 'function')) {
+                return null;
+            }
+
+            $classRequesting = array_get(array_get($item, 'args', []), '1.0');
+
+            if (!$classRequesting) {
+                return null;
+            }
+
+            if ($classRequesting instanceof FlatfileFields) {
+                return $classRequesting;
+            }
+
+            return null;
+        })->filter()->first();
     }
 }
