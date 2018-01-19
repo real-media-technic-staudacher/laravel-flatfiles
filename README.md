@@ -8,6 +8,49 @@
 
     composer require real-media-technic-staudacher/laravel-flatfiles:dev-master
     
+## Usage
+
+```php
+public function handle()
+{
+    // In this case we do not use Laravel disks because we deal with local files
+    $exportFilepath = '/var/www/html/export/myfile.csv';
+    
+    // Initialize Exporter with current class holding the field definitions in field()-method. See later.
+    $flatfile = app(FlatfileExport::class, [$this]);
+
+    // An exception is thrown if the file you want to export already exists. You can handle this better than the package!
+    if (file_exists($exportFilepath)) {
+        \Log::info('Deleting existing export file: '.$exportFilepath);
+        unlink($exportFilepath);
+    }
+
+    // Expose where to export the file. Based on file extension (ie. .csv) we select the proper exporter for you)
+    $flatfile->toFile($exportFilepath);
+
+    $flatfile->addHeader();
+
+    // You may want to load any data globally to prevent database queries for each row or even cell
+    $imagePaths = $this->imagepaths();
+
+    // Only needed for very custom contents in your flatfile!
+    $flatfile->beforeEachRow(function (Model $model) use ($imagePaths) {
+        // Do some very special magic to make custom image paths available for your "cells" for
+        // each row.
+        // Typically here you merge the globally loaded objects with the data you need for you cell
+        // $model here is an eloquent model selected by queryToSelectEachRow()
+    });
+
+    // Here we use a query builder (if you want to).
+    $this->queryToSelectEachRow()->chunk(500, function ($chunk) use ($flatfile) {
+        $flatfile->addRows($chunk);
+    });
+
+    // Dont forget to properly "close" the operation by this command
+    $flatfile->moveToTarget();
+}
+```
+
 ## Configuration
 
 ### Define fields
