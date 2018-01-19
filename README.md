@@ -8,169 +8,135 @@
 
     composer require real-media-technic-staudacher/laravel-flatfiles:dev-master
     
-## Usage
+To overwrite the default configuration
+
+    php artisan vendor:publish
+
+Then select the option `Provider: LaravelFlatfiles\FlatfileExportServiceProvider`. The default configuration looks like:
 
 ```php
-public function handle()
-{
-    // In this case we do not use Laravel disks because we deal with local files
-    $exportFilepath = '/var/www/html/export/myfile.csv';
+return [
+    'default' => env('FLATFILE_DRIVER', 'csv'),
+
+    'drivers' => [
+        'csv' => [
+            'charset'   => 'UTF-8',
+            'delimiter' => ';',
+            'enclosure' => '"',
+            'bom'       => true,
+        ],
+    ],
+];
+```
+
+As you see, right now, only CSV exports are supported ;-)
     
-    // Initialize Exporter with current class holding the field definitions in field()-method. See later.
-    $flatfile = app(FlatfileExport::class, [$this]);
+## Usage example / Basic workflow
 
-    // An exception is thrown if the file you want to export already exists. You can handle this better than the package!
-    if (file_exists($exportFilepath)) {
-        \Log::info('Deleting existing export file: '.$exportFilepath);
-        unlink($exportFilepath);
+```php
+// Implement FlatfileFields to define your export fields (See later sections for details)
+class ExportJob implements ShouldQueue, FlatfileFields
+{
+    // FlatfileExporter magically find out, whether your auto-injecting method's class implement the FlatfileFields-interface!
+    // If so, it use this field definition by default
+    public function handle(FlatfileExport $flatfile, $exportFilepath = '/var/www/html/storage/export.csv')
+    {
+        // Initialize Exporter with current class holding the field definitions in field()-method. See later.
+        $flatfile = app(FlatfileExport::class, [$this]);
+    
+        // Expose where to export the file. Based on file extension (ie. .csv) we select the proper exporter for you)
+        $flatfile->toFile($exportFilepath, $replaceIfExisting = true);
+    
+        $flatfile->addHeader();
+    
+        // You may want to load any data globally to prevent database queries for each row or even cell
+        $imagePaths = $this->imagepaths();
+    
+        // Only needed for very custom contents in your flatfile!
+        $flatfile->beforeEachRow(function (Model $model) use ($imagePaths) {
+            // Do some very special magic to make custom image paths available for your "cells" for
+            // each row.
+            // Typically here you merge the globally loaded objects with the data you need for you cell
+            // $model here is an eloquent model selected by queryToSelectEachRow()
+        });
+    
+        // Here we use a query builder (if you want to) and ensure to restrict memory usage by chunking
+        $this->queryToSelectEachRow()->chunk(500, function ($chunk) use ($flatfile) {
+            $flatfile->addRows($chunk);
+        });
+    
+        // Dont forget to properly "close" the operation by this command
+        $flatfile->moveToTarget();
     }
-
-    // Expose where to export the file. Based on file extension (ie. .csv) we select the proper exporter for you)
-    $flatfile->toFile($exportFilepath);
-
-    $flatfile->addHeader();
-
-    // You may want to load any data globally to prevent database queries for each row or even cell
-    $imagePaths = $this->imagepaths();
-
-    // Only needed for very custom contents in your flatfile!
-    $flatfile->beforeEachRow(function (Model $model) use ($imagePaths) {
-        // Do some very special magic to make custom image paths available for your "cells" for
-        // each row.
-        // Typically here you merge the globally loaded objects with the data you need for you cell
-        // $model here is an eloquent model selected by queryToSelectEachRow()
-    });
-
-    // Here we use a query builder (if you want to).
-    $this->queryToSelectEachRow()->chunk(500, function ($chunk) use ($flatfile) {
-        $flatfile->addRows($chunk);
-    });
-
-    // Dont forget to properly "close" the operation by this command
-    $flatfile->moveToTarget();
+    
+    // In your field defintion to are supposed to "only" pick out loaded or prepared data instead of
+    // doing complex calculations (See beforeEachRow())
+    public function fields() {
+        return []; // Your field defintion
+    }
+    
+    // Return an elequent query builder and carefully eager load relations you will gonna use in your cells!
+    protected function queryToSelectEachRow() {
+        return Products::whereCategory(15)->with('images');
+    }
 }
 ```
 
-## Configuration
+## Load export
 
-### Define fields
+Easiest way is to auto-inject the `FlatfileExport` while implementing the `FlatfileFields` interface:
 
-You need to define an array of fields. See Field definitions later on. This will generate a flatfile with one column. Headline will be `Column headline` and the value correspond to your model's column `column_name`
 ```php
-    $fields = [
-        'column_name' => 'Column headline'
-    ];
-```
-    
-#### Advanced field configurations: Relations, Custom labels, Cell callbacks
-```php
-    $fields = [
-        'column_name' => 'Column headline'
-        [
-            'column'   => 'relation.relation_name', // Access relations
-            'label'    => 'Label with special characters',
-            'callback' => function ($value, $model) { // Format cell values
-                return $model->currencySign.' '.number_format($value);
-            }
-        ]
-    ]
-```
-    
-This works as well
-```php
-    $fields = [
-        'column_name' => [ // Column name can also still be the key of the array
-            'label'    => 'Label with special characters',
-            'callback' => function ($value, $model) {}
-        ]
-    ]
+// This will lookup for your field definition in the current class
+class ExportJob implements ShouldQueue, FlatfileFields
+{
+    public function handle(FlatfileExport $flatfile) {}
+}
 ```
 
-## Usage
+If you want to use a dedicated class for field definitions are get the array from somewhere else use `withFields()`
 
-### Ingredients
-
-#### Field defintions
-
-By doing so, you get
-- The possiblity to add callbacks in your field definitions
-- Decide by yourself whether you want a dedicated class or just use a method in get the field defintions from anywhere else 
-
-Two examples how to use it:
-```php
-    class MyCsvExport implements ShouldQueue, FlatfileFields
-    {
-        public function fields()
-        {
-            // Your field definitions in code. You can use callbacks here
-            return [...]
-        }
-    
-        public function handle() {}
-    }
-```
-    
-or 
-```php
-    // Dedicated class and definition in your code base 
-    class MyCsvExportFields FlatfileFields
-    {
-        public function fields()
-        {
-            // Callbacks or any other interpolations are not possible
-            return config('exports.mycsv.fields');
-        }
-    }
-```
-
-#### A Flatfile class
-
-Resolved from container and connected to your field definition
 ```php
     public function handle(FlatfileExport $flatfile) {
-        $flatfile->withFields($this); // If your class directly implements the FlatfileFields-interface
+        $flatfile->withFields($objImplementingFlatfileFields);
+        
+        // Alternatively you can resolve and assign fields in one step
+        // app(FlatfileExport::class, [$objImplementingFlatfileFields]);
+        // app(FlatfileExport::class, ['fields' => $objImplementingFlatfileFields]);
     }
 ```
-    
-or
 
-```php
-    // Resolve by yourself
-    $flatfile = app(FlatfileExport::class, ['fields' => $this]);
-    
-    // There is a fallback for lazy people as well 
-    $flatfile = app(FlatfileExport::class, [$this]);
-```
-    
-### Export
+## Specify target file / location
 
-With this ingredients you can easily do a flatfile export.
+### Local path
 
-**If the export file already exists, an RuntimeException is thrown. You have to take care of deleting/moving old exports by yourself.**
-
-#### Using a storage disk
-
-- This enables you to export to all available filesystem drivers
-- Exports are generated locally/temporary first and than copied to disk (you have to trigger this explicitely)
-
-```php
-    $flatfile->to(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');
-    
-    // Do your export ...
-    
-    $flatfile->moveToDisk();
-```
-
-#### Using a local filepath
-
-- You're a free where the file should be written at
-- It will not generated in a temporary file first
+- You're a free where the file should be written to
+- It will not generate a temporary file first
 
 ```php
     $flatfile->toFile('absolute/path/to/file-with-extension.csv');
 ```
 
-#### Add rows to export file
+If you want a temporary file first, use
+
+!! TODO !!
+
+### Using filesystem disk
+
+- This enables you to export to all available filesystem drivers
+- Exports are generated locally/temporary first and than streamed to disk
+
+```php
+    $flatfile->to(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');
+    
+    // Do export ...
+    
+    $flatfile->moveToDisk();
+```
+
+## Prepare global export resources
+...
+## Loop through data and write to export file
 
 - Preselect the models that will represent a single row in your flat file
 - Chunk through this result set to limit resources
@@ -181,6 +147,9 @@ With this ingredients you can easily do a flatfile export.
         $flatfile = app(FlatfileExport::class, [$this]);
         $flatfile->toFile($this->csvFilepath);
 
+        // Optionally add a Header
+        $flatfile->addHeader();
+        
         // Proposed way to step through a large result set
         $this->queryToSelectEachRow()->chunk(500, function ($chunk) use ($flatfile) {
             $flatfile->addRows($chunk);
@@ -192,11 +161,47 @@ With this ingredients you can easily do a flatfile export.
         return CampaignModels::whereCampaignId($this->campaignId)->with(['model.product', 'campaign']);
     }
 ```
+## Finish export
 
-#### Add headers
+    $flatfile->moveToTarget();
 
-Add before your first `$flatfile->addRows()`
+## Define fields
+
+Fields are defined within an object/class implementing the `FlatfileFields` interface, thus a `public function field()`.
+Implement this function directly in your export-handling class, or in a dedicated sort like a DTO class.
+
+Why?
+You get the possiblity to add callbacks in your field definitions, so that you can define dynamic cells easily
+
+In your `field()` method you need to define an array of fields.
+This will generate a flatfile with one column each field array element.
+
+Assume we load a collection of products having attributes named `product_name`. The definition looks like:
 
 ```php
-    $flatfile->addHeader();
+    $fields = [
+        'product_name' => 'Product Name'
+    ];
 ```
+
+The field defintions are pretty flexible. Better learn by examples by yourself
+
+```php
+    $fields = [
+        'relation.columnOfRelation' => 'Column Header Label', // Relations should be eager loaded
+        [
+            'label'    => 'Label with special characters',
+            'callback' => function ($value, $model) { // Format cell values
+                return $model->currencySign.' '.number_format($value);
+            }
+        ],
+        'attribute' => [ // Column name can also still be the key of the array
+            'label'    => 'Label with special characters',
+            'callback' => function ($value, $model) {}
+        ],
+        'Column header' => function() { // For callbacks the header label can also be specified in the key! Crazy...
+            return 'static cell content';
+        }
+    ]
+```
+
