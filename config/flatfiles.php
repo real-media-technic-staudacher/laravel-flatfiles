@@ -19,7 +19,7 @@ return [
             'charset'   => 'UTF-8',
             'delimiter' => ';',
             'enclosure' => '"',
-            'bom'       => false,
+            'bom'       => true,
         ],
     ],
 ];
