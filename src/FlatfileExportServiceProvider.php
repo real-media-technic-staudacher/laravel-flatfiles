@@ -5,8 +5,8 @@
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Arr;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
 /**

@@ -2,13 +2,13 @@
 
 namespace LaravelFlatfiles;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use League\Csv\Writer;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
 
 class FlatfileExport
 {
@@ -25,10 +25,12 @@ class FlatfileExport
     protected $pathToFileOnDisk;
 
     /** @var string $pathToFile */
-    protected $pathToLocalTmpFile;
+    public $pathToLocalTmpFile;
 
     /** @var callable|null */
     protected $beforeEachRowCallback;
+
+    protected $bomNeedsToBeAdded = false;
 
     public function __construct(FlatfileExportConfiguration $configuration, FlatfileFields $fields = null)
     {
@@ -36,6 +38,10 @@ class FlatfileExport
 
         if ($fields !== null) {
             $this->withFields($fields);
+        }
+
+        if ($this->configuration->get('csv', 'bom')) {
+            $this->bomNeedsToBeAdded = true;
         }
     }
 
@@ -47,8 +53,8 @@ class FlatfileExport
     }
 
     /**
-     * @param String                   $targetFilename
-     * @param FilesystemAdapter|String $disk The disk object or the name of it
+     * @param string                   $targetFilename
+     * @param FilesystemAdapter|string $disk The disk object or the name of it
      *
      * @return FlatfileExport
      * @throws \League\Csv\Exception
@@ -80,7 +86,7 @@ class FlatfileExport
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (!file_exists(dirname($absoluteFilepath))) {
+        if (! file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
@@ -94,7 +100,7 @@ class FlatfileExport
      * You can set a file location for the temporary file used to generate the export file. It's only locally, because
      * we're using a streaming API.
      *
-     * @param String $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
+     * @param string $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
      *
      * @return $this
      */
@@ -125,11 +131,11 @@ class FlatfileExport
     }
 
     /**
-     * @param Model $model
+     * @param Model|Collection $model
      *
      * @throws \League\Csv\CannotInsertRecord
      */
-    public function addRow(Model $model)
+    public function addRow($model)
     {
         if (false === $this->applyRowCallback($model)) {
             return;
@@ -161,8 +167,10 @@ class FlatfileExport
 
     public function moveToTarget()
     {
+        $this->addBomIfNeeded();
+
         $this->disk()->putStream($this->pathToFile(), fopen($this->pathToLocalTmpFile, 'r'));
-        
+
         unlink($this->pathToLocalTmpFile);
     }
 
@@ -176,7 +184,7 @@ class FlatfileExport
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
-                if (!$this->pathToLocalTmpFile) {
+                if (! $this->pathToLocalTmpFile) {
                     if ($this->usesDisk()) {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     } else {
@@ -188,7 +196,7 @@ class FlatfileExport
 
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
-                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
+//                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
                 break;
             default:
                 throw new \RuntimeException('Unsupported file type: .'.$extension);
@@ -237,13 +245,38 @@ class FlatfileExport
         return true;
     }
 
-    private function makeModelAttributesVisible(Model $model): Model
+    /**
+     * @param Model|Collection $model
+     *
+     * @return Model|Collection
+     */
+    private function makeModelAttributesVisible($model)
     {
+        if (! ($model instanceof Model)) {
+            return $model;
+        }
+
         return $model->makeVisible($this->configuration->columns());
     }
 
     private function usesDisk()
     {
         return $this->disk() !== null;
+    }
+
+    private function addBomIfNeeded()
+    {
+        if ($this->bomNeedsToBeAdded && ! $this->checkbom()) {
+            file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
+            $this->bomNeedsToBeAdded = false;
+        }
+    }
+
+    public function checkbom()
+    {
+        $str = file_get_contents($this->pathToLocalTmpFile);
+        $bom = pack('CCC', 0xef, 0xbb, 0xbf);
+
+        return 0 === strncmp($str, $bom, 3);
     }
 }
