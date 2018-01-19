@@ -25,10 +25,12 @@ class FlatfileExport
     protected $pathToFileOnDisk;
 
     /** @var string $pathToFile */
-    protected $pathToLocalTmpFile;
+    public $pathToLocalTmpFile;
 
     /** @var callable|null */
     protected $beforeEachRowCallback;
+
+    protected $bomNeedsToBeAdded = false;
 
     public function __construct(FlatfileExportConfiguration $configuration, FlatfileFields $fields = null)
     {
@@ -36,6 +38,10 @@ class FlatfileExport
 
         if ($fields !== null) {
             $this->withFields($fields);
+        }
+
+        if ($this->configuration->get('csv', 'bom')) {
+            $this->bomNeedsToBeAdded = true;
         }
     }
 
@@ -162,6 +168,8 @@ class FlatfileExport
 
     public function moveToTarget()
     {
+        $this->addBomIfNeeded();
+
         $this->disk()->putStream($this->pathToFile(), fopen($this->pathToLocalTmpFile, 'r'));
 
         unlink($this->pathToLocalTmpFile);
@@ -189,7 +197,7 @@ class FlatfileExport
 
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
-                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
+//                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
                 break;
             default:
                 throw new \RuntimeException('Unsupported file type: .'.$extension);
@@ -255,5 +263,21 @@ class FlatfileExport
     private function usesDisk()
     {
         return $this->disk() !== null;
+    }
+
+    private function addBomIfNeeded()
+    {
+        if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
+            file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
+            $this->bomNeedsToBeAdded = false;
+        }
+    }
+
+    public function checkbom()
+    {
+        $str = file_get_contents($this->pathToLocalTmpFile);
+        $bom = pack("CCC", 0xef, 0xbb, 0xbf);
+
+        return 0 === strncmp($str, $bom, 3);
     }
 }
