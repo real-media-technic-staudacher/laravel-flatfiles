@@ -2,13 +2,13 @@
 
 namespace LaravelFlatfiles;
 
-use League\Csv\Writer;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use League\Csv\Writer;
 
 class FlatfileExport
 {
@@ -94,7 +94,7 @@ class FlatfileExport
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (! file_exists(dirname($absoluteFilepath))) {
+        if (!file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
@@ -150,7 +150,7 @@ class FlatfileExport
         }
 
         $fields = $this->configuration->fields();
-        $dataAsArray = $this->makeModelAttributesVisible($model)->toArray();
+        $dataAsArray = $this->toArrayWithoutSnakeCasedKeys($this->makeModelAttributesVisible($model));
 
         // Grap values for eacho column from arrayed model (including relations)
         $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
@@ -177,7 +177,7 @@ class FlatfileExport
     {
         $this->addBomIfNeeded();
 
-        if (! $this->usesDisk()) {
+        if (!$this->usesDisk()) {
             if ($this->pathToLocalTmpFile == $this->pathToFile()) {
                 return true;
             }
@@ -200,7 +200,7 @@ class FlatfileExport
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
-                if (! $this->pathToLocalTmpFile) {
+                if (!$this->pathToLocalTmpFile) {
                     if ($this->usesDisk()) {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     } else {
@@ -268,7 +268,7 @@ class FlatfileExport
      */
     private function makeModelAttributesVisible($model)
     {
-        if (! ($model instanceof Model)) {
+        if (!($model instanceof Model)) {
             return $model;
         }
 
@@ -282,7 +282,7 @@ class FlatfileExport
 
     private function addBomIfNeeded()
     {
-        if ($this->bomNeedsToBeAdded && ! $this->checkbom()) {
+        if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
             file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
             $this->bomNeedsToBeAdded = false;
         }
@@ -294,5 +294,16 @@ class FlatfileExport
         $bom = pack('CCC', 0xef, 0xbb, 0xbf);
 
         return 0 === strncmp($str, $bom, 3);
+    }
+
+    private function toArrayWithoutSnakeCasedKeys($model)
+    {
+        $snake = $model::$snakeAttributes;
+
+        $model::$snakeAttributes = false;
+        $dataAsArray = $model->toArray();
+        $model::$snakeAttributes = $snake;
+
+        return $dataAsArray;
     }
 }
