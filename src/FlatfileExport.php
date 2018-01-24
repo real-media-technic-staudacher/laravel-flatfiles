@@ -298,6 +298,10 @@ class FlatfileExport
 
     private function toArrayWithoutSnakeCasedKeys($model)
     {
+        if (!($model instanceof Model)) {
+            return $model->toArray();
+        }
+
         $snake = $model::$snakeAttributes;
 
         $model::$snakeAttributes = false;
