@@ -87,7 +87,7 @@ class FlatfileExport
 
         if ($replace && $fileExists) {
             \Log::debug('Delete existing export file: '.$absoluteFilepath);
-            unlink($absoluteFilepath);
+            $fileExists = !unlink($absoluteFilepath);
         }
 
         if ($fileExists) {
