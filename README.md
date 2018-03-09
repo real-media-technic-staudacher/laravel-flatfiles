@@ -188,6 +188,7 @@ The field defintions are pretty flexible. Better learn by examples by yourself
         'relation.columnOfRelation' => 'Column Header Label', // Relations should be eager loaded
         [
             'label'    => 'Label with special characters',
+            'column'   => 'relation.columnOfRelation' // Value of param $value in callback (optional)
             'callback' => function ($value, $model) { // Format cell values
                 return $model->currencySign.' '.number_format($value);
             }
