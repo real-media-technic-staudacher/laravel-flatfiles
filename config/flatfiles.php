@@ -16,10 +16,11 @@ return [
 
     'drivers' => [
         'csv' => [
-            'charset'   => 'UTF-8',
-            'delimiter' => ';',
-            'enclosure' => '"',
-            'bom'       => true,
+            'charset'       => 'UTF-8',
+            'delimiter'     => ';',
+            'enclosure'     => '"',
+            'bom'           => true,
+            'streamFilters' => [],
         ],
     ],
 ];

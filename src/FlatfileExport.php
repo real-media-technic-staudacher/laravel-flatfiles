@@ -209,9 +209,12 @@ class FlatfileExport
                 }
 
                 $this->writer = Writer::createFromPath($this->pathToLocalTmpFile, 'w+');
-
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
+                foreach ($this->configuration->get('csv', 'streamFilters') as $streamFilter) {
+                    $this->writer->appendStreamFilter($streamFilter);
+                }
+
 //                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
                 break;
             default:
