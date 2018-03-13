@@ -214,20 +214,7 @@ class FlatfileExport
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
 
                 if ($this->configuration->get('csv', 'force_enclosure')) {
-                    $sequence = "\t\x1f";
-                    $addSequence = function (array $row) use ($sequence) {
-                        $res = [];
-                        foreach ($row as $value) {
-                            $res[] = $sequence.$value;
-                        }
-                        return $res;
-                    };
-                    $this->writer->addFormatter($addSequence);
-
-                    /*
-                    RemoveSequence::registerStreamFilter();
-                    $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
-                    */
+                    $this->addForceEnclosure();
                 }
 
 //                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
@@ -327,5 +314,24 @@ class FlatfileExport
         $model::$snakeAttributes = $snake;
 
         return $dataAsArray;
+    }
+
+    /**
+     * adding an StreamFilter to force the enclosure of each cell
+     */
+    private function addForceEnclosure()
+    {
+        $sequence = "\t\x1f";
+        $addSequence = function (array $row) use ($sequence) {
+            $res = [];
+            foreach ($row as $value) {
+                $res[] = $sequence.$value;
+            }
+            return $res;
+        };
+        $this->writer->addFormatter($addSequence);
+
+        RemoveSequence::registerStreamFilter();
+        $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
     }
 }
