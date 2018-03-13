@@ -212,13 +212,21 @@ class FlatfileExport
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
 
+
+                $sequence = "\t\x1f";
+                $addSequence = function (array $row) use ($sequence) {
+                    $res = [];
+                    foreach ($row as $value) {
+                        $res[] = $sequence.$value;
+                    }
+                    return $res;
+                };
+                $this->writer->addFormatter($addSequence);
+
+
                 foreach ($this->configuration->get('csv', 'streamFilters') as $streamFilter) {
                     $streamFilter::registerStreamFilter();
-                    $this->writer->addStreamFilter(
-                        $streamFilter::createFilterName(
-                            $this->writer, $this->configuration->get('csv', 'delimiter')
-                        )
-                    );
+                    $this->writer->addStreamFilter($streamFilter::createFilterName($this->writer, $sequence));
                 }
 
 //                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
