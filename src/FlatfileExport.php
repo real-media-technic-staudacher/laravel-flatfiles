@@ -211,10 +211,10 @@ class FlatfileExport
                 $this->writer = Writer::createFromPath($this->pathToLocalTmpFile, 'w+');
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
-                
+
                 foreach ($this->configuration->get('csv', 'streamFilters') as $streamFilter) {
                     $streamFilter::registerStreamFilter();
-                    $this->writer->appendStreamFilter(
+                    $this->writer->addStreamFilter(
                         $streamFilter::createFilterName(
                             $this->writer, $this->configuration->get('csv', 'delimiter')
                         )
