@@ -24,7 +24,7 @@ return [
             'delimiter'     => ';',
             'enclosure'     => '"',
             'bom'           => true,
-            'streamFilters' => [],
+            'force_enclose' => false,
         ],
     ],
 ];
