@@ -327,10 +327,11 @@ class FlatfileExport
             foreach ($row as $value) {
                 $res[] = $sequence.$value;
             }
+
             return $res;
         };
-        $this->writer->addFormatter($addSequence);
 
+        $this->writer->addFormatter($addSequence);
         RemoveSequence::registerStreamFilter();
         $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
     }

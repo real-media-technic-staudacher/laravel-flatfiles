@@ -1,4 +1,7 @@
 <?php
+/**
+ * thanks to https://nyamsprod.com/blog/2015/qa-enforcing-enclosure-with-leaguecsv/
+ */
 
 namespace LaravelFlatfiles\StreamFilters;
 
@@ -92,9 +95,6 @@ class RemoveSequence extends \php_user_filter
      */
     public static function createFilterName(AbstractCsv $csv, $sequence)
     {
-        if (preg_match(',[\r\n\s],', $sequence)) {
-            throw new InvalidArgumentException('The sequence contains invalid characters');
-        }
         return self::FILTER_NAME.implode(self::DELIMITER, [$sequence, $csv->getDelimiter(), $csv->getEnclosure()]);
     }
 }
