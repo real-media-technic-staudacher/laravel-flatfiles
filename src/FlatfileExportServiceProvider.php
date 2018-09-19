@@ -68,21 +68,49 @@ class FlatfileExportServiceProvider extends ServiceProvider
      */
     private function fieldsFromAutoInjectingClass($debugBacktrace)
     {
-        return collect($debugBacktrace)->transform(function ($item) {
+        $firstTry = collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
             if ('getMethodDependencies' != array_get($item, 'function')) {
-                return;
+                return null;
             }
 
             $classRequesting = array_get(array_get($item, 'args', []), '1.0');
 
             if (! $classRequesting) {
-                return;
+                return null;
             }
 
             if ($classRequesting instanceof FlatfileFields) {
                 return $classRequesting;
             }
+
+            return null;
+        })->filter()->first();
+
+        if ($firstTry) {
+            return $firstTry;
+        }
+
+        return collect($debugBacktrace)->transform(function ($item) {
+            // Auto injection detected?
+            if ('resolveMethodDependencies' != array_get($item, 'function')) {
+                return null;
+            }
+
+            $classRequesting = array_get(array_get($item, 'args', []), '1');
+
+            if (! $classRequesting) {
+                return null;
+            }
+
+            if ($classRequesting instanceof \ReflectionMethod) {
+                $objectOfClass = app($classRequesting->class);
+                if ($objectOfClass instanceof FlatfileFields) {
+                    return $objectOfClass;
+                }
+            }
+
+            return null;
         })->filter()->first();
     }
 }
