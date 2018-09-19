@@ -129,7 +129,7 @@ If you want a temporary file first, use
     
     // Do export ...
     
-    $flatfile->moveToDisk();
+    $flatfile->moveToTarget();
 ```
 
 ## Prepare global export resources
