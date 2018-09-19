@@ -125,7 +125,7 @@ If you want a temporary file first, use
 - Exports are generated locally/temporary first and than streamed to disk
 
 ```php
-    $flatfile->to(Storage::disk('name'), '/relative/path/to/file-with-extension.csv');
+    $flatfile->to('/relative/path/to/file-with-extension.csv', Storage::disk('name'));
     
     // Do export ...
     
