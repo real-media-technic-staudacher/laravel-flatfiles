@@ -6,14 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## 0.3
+## v0.3
 ### Added
 - ```return $flatfile->downloadResponse();```
 
 ### Fixed
 - Problem with autoinjection directly in controllers
 
-## 0.2
+## v0.2
 ### Added
 - Support mode to force enclose all columns
 
