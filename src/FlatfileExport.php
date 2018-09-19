@@ -318,6 +318,8 @@ class FlatfileExport
 
     /**
      * adding an StreamFilter to force the enclosure of each cell
+     *
+     * @throws \League\Csv\Exception
      */
     private function addForceEnclosure()
     {
@@ -334,5 +336,20 @@ class FlatfileExport
         $this->writer->addFormatter($addSequence);
         RemoveSequence::registerStreamFilter();
         $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
+    }
+
+    /**
+     * @param string|null $filename
+     * @param array       $headers
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function downloadResponse(string $filename = null, array $headers = [])
+    {
+        if ($this->usesDisk()) {
+            return $this->disk()->download($this->pathToFile(), $filename, $headers);
+        }
+
+        return response()->download($this->pathToFile(), $filename, $headers);
     }
 }
