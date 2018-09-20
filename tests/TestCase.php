@@ -2,10 +2,10 @@
 
 namespace LaravelFlatfilesTest;
 
-abstract class TestCase extends \Orchestra\Testbench\TestCase
+abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
-    protected function getPackageProviders($app)
-    {
-        return ['LaravelFlatfiles\FlatfileExportServiceProvider'];
-    }
+    //protected function getPackageProviders($app)
+    //{
+    //    return ['LaravelFlatfiles\FlatfileExportServiceProvider'];
+    //}
 }
