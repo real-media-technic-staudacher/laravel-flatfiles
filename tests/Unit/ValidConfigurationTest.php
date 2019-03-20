@@ -32,7 +32,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
         ];
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
