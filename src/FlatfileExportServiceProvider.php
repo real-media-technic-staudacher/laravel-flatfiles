@@ -71,20 +71,18 @@ class FlatfileExportServiceProvider extends ServiceProvider
         $firstTry = collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
             if ('getMethodDependencies' != array_get($item, 'function')) {
-                return null;
+                return;
             }
 
             $classRequesting = array_get(array_get($item, 'args', []), '1.0');
 
             if (! $classRequesting) {
-                return null;
+                return;
             }
 
             if ($classRequesting instanceof FlatfileFields) {
                 return $classRequesting;
             }
-
-            return null;
         })->filter()->first();
 
         if ($firstTry) {
@@ -94,13 +92,13 @@ class FlatfileExportServiceProvider extends ServiceProvider
         return collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
             if ('resolveMethodDependencies' != array_get($item, 'function')) {
-                return null;
+                return;
             }
 
             $classRequesting = array_get(array_get($item, 'args', []), '1');
 
             if (! $classRequesting) {
-                return null;
+                return;
             }
 
             if ($classRequesting instanceof \ReflectionMethod) {
@@ -109,8 +107,6 @@ class FlatfileExportServiceProvider extends ServiceProvider
                     return $objectOfClass;
                 }
             }
-
-            return null;
         })->filter()->first();
     }
 }

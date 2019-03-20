@@ -1,12 +1,12 @@
 <?php
 /**
- * thanks to https://nyamsprod.com/blog/2015/qa-enforcing-enclosure-with-leaguecsv/
+ * thanks to https://nyamsprod.com/blog/2015/qa-enforcing-enclosure-with-leaguecsv/.
  */
 
 namespace LaravelFlatfiles\StreamFilters;
 
-use InvalidArgumentException;
 use League\Csv\AbstractCsv;
+use InvalidArgumentException;
 
 class RemoveSequence extends \php_user_filter
 {
@@ -15,13 +15,13 @@ class RemoveSequence extends \php_user_filter
     const DELIMITER = '--';
 
     /**
-     * The pattern to search for
+     * The pattern to search for.
      * @var string
      */
     private $pattern;
 
     /**
-     * The string to replace the pattern with
+     * The string to replace the pattern with.
      * @var string
      */
     private $replacement;
@@ -40,7 +40,7 @@ class RemoveSequence extends \php_user_filter
 
     /**
      * Validate the filtername and set
-     * the preg_replace pattern and replacement argument
+     * the preg_replace pattern and replacement argument.
      * @return bool
      */
     private function isValidFiltername()
@@ -76,16 +76,16 @@ class RemoveSequence extends \php_user_filter
     }
 
     /**
-     * Register the generic class stream filter
+     * Register the generic class stream filter.
      */
     public static function registerStreamFilter()
     {
-        stream_filter_register(self::FILTER_NAME.'*', self::CLASS);
+        stream_filter_register(self::FILTER_NAME.'*', self::class);
     }
 
     /**
      * Generate the specific stream filter for a given
-     * CSV class and a sequence
+     * CSV class and a sequence.
      *
      * @param AbstractCsv $csv      The object to which the filter will be attach
      * @param string      $sequence The sequence that will be removed from the CSV
