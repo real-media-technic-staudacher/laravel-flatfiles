@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v0.4.1
+### Added
+- #11 SYLK file format error
+
+## v0.4
+### Changed
+- Now requireing Laravel v5.8
+
 ## v0.3
 ### Added
 - ```return $flatfile->downloadResponse();```
