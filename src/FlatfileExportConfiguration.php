@@ -68,7 +68,13 @@ class FlatfileExportConfiguration
 
     public function fieldLabels(): array
     {
-        return $this->fields()->pluck('label')->toArray();
+        $labels = $this->fields()->pluck('label');
+
+        if (!$this->get('csv', 'ignore_sylk_exception') && strcmp($labels->first(), 'ID') === 0) {
+            throw new \Exception("SYLK file format error: Don't name your first column 'ID'");
+        }
+
+        return $labels->toArray();
     }
 
     public function columns(): array

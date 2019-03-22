@@ -20,11 +20,12 @@ return [
 
     'drivers' => [
         'csv' => [
-            'charset'       => 'UTF-8',
-            'delimiter'     => ';',
-            'enclosure'     => '"',
-            'bom'           => true,
-            'force_enclose' => false,
+            'charset'               => 'UTF-8',
+            'delimiter'             => ';',
+            'enclosure'             => '"',
+            'bom'                   => true,
+            'force_enclosure'       => false,
+            'ignore_sylk_exception' => false,
         ],
     ],
 ];
@@ -204,3 +205,8 @@ The field defintions are pretty flexible. Better learn by examples by yourself
     ]
 ```
 
+## SYLK file format error
+
+By default, an exception getting thrown if the first column in the header row is named `ID`.
+Background for this is the SYLK formatting, which does not allow an flawless opening with Microsoft Excel in some Versions.
+You are free to disable the exception via the config `drivers.csv.ignore_sylk_exception` again.

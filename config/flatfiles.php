@@ -16,11 +16,12 @@ return [
 
     'drivers' => [
         'csv' => [
-            'charset'         => 'UTF-8',
-            'delimiter'       => ';',
-            'enclosure'       => '"',
-            'bom'             => true,
-            'force_enclosure' => false,
+            'charset'               => 'UTF-8',
+            'delimiter'             => ';',
+            'enclosure'             => '"',
+            'bom'                   => true,
+            'force_enclosure'       => false,
+            'ignore_sylk_exception' => false,
         ],
     ],
 ];
