@@ -150,7 +150,7 @@ class FlatfileExport
      */
     public function addRowForEachRelation(Model $model, string $relation, string $alias)
     {
-        if (data_get($model, $relation) === null) {
+        if (!data_get($model, $relation)) {
             $this->addRow($model);
 
             return;
