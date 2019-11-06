@@ -2,6 +2,7 @@
 
 namespace LaravelFlatfiles;
 
+use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
@@ -40,7 +41,7 @@ class FlatfileExportConfiguration
                 return $value;
             }
 
-            if (is_callable($value)) {
+            if ($value instanceof Closure) {
                 $callback = $value;
                 $value = $key;
             }
