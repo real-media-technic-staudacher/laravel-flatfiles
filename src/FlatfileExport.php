@@ -2,13 +2,12 @@
 
 namespace LaravelFlatfiles;
 
-use League\Csv\Writer;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
@@ -90,14 +89,14 @@ class FlatfileExport
 
         if ($replace && $fileExists) {
             \Log::debug('Delete existing export file: '.$absoluteFilepath);
-            $fileExists = ! unlink($absoluteFilepath);
+            $fileExists = !unlink($absoluteFilepath);
         }
 
         if ($fileExists) {
             throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
         }
 
-        if (! file_exists(dirname($absoluteFilepath))) {
+        if (!file_exists(dirname($absoluteFilepath))) {
             mkdir($absoluteFilepath, 0777, true);
         }
 
@@ -144,25 +143,24 @@ class FlatfileExport
     /**
      * @param Model  $model
      * @param string $relation Name of child relation in model
-     * @param string $alias Name of attribute set with each model
+     * @param string $alias    Name of attribute set with each model
      *
      * @return void
      * @throws CannotInsertRecord
      */
     public function addRowForEachRelation(Model $model, string $relation, string $alias)
     {
-        if ($model->$relation->isEmpty()) {
+        if (data_get($model, $relation) === null) {
             $this->addRow($model);
 
             return;
         }
 
-        foreach ($model->$relation as $asset) {
-            $model->$alias = $asset;
+        foreach (data_get($model, $relation) as $relationModel) {
+            $model->$alias = $relationModel;
             $this->addRow($model);
+            unset($model->$alias);
         }
-
-        return;
     }
 
     /**
@@ -204,7 +202,7 @@ class FlatfileExport
     {
         $this->addBomIfNeeded();
 
-        if (! $this->usesDisk()) {
+        if (!$this->usesDisk()) {
             if ($this->pathToLocalTmpFile == $this->pathToFile()) {
                 return true;
             }
@@ -227,7 +225,7 @@ class FlatfileExport
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
-                if (! $this->pathToLocalTmpFile) {
+                if (!$this->pathToLocalTmpFile) {
                     if ($this->usesDisk()) {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     } else {
@@ -299,7 +297,7 @@ class FlatfileExport
      */
     private function makeModelAttributesVisible($model)
     {
-        if (! ($model instanceof Model)) {
+        if (!($model instanceof Model)) {
             return $model;
         }
 
@@ -313,7 +311,7 @@ class FlatfileExport
 
     private function addBomIfNeeded()
     {
-        if ($this->bomNeedsToBeAdded && ! $this->checkbom()) {
+        if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
             file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
             $this->bomNeedsToBeAdded = false;
         }
@@ -329,7 +327,7 @@ class FlatfileExport
 
     private function toArrayWithoutSnakeCasedKeys($model)
     {
-        if (! ($model instanceof Model)) {
+        if (!($model instanceof Model)) {
             return $model->toArray();
         }
 
