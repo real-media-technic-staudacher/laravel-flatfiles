@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Filesystem\FilesystemAdapter;
 use LaravelFlatfiles\StreamFilters\RemoveSequence;
+use League\Csv\CannotInsertRecord;
+use League\Csv\Writer;
 
 class FlatfileExport
 {
@@ -130,7 +132,7 @@ class FlatfileExport
     /**
      * @param Collection|Model[] $models
      *
-     * @throws \League\Csv\CannotInsertRecord
+     * @throws CannotInsertRecord
      */
     public function addRows(Collection $models)
     {
@@ -140,9 +142,33 @@ class FlatfileExport
     }
 
     /**
+     * @param Model  $model
+     * @param string $relation Name of child relation in model
+     * @param string $alias Name of attribute set with each model
+     *
+     * @return void
+     * @throws CannotInsertRecord
+     */
+    public function addRowForEachRelation(Model $model, string $relation, string $alias)
+    {
+        if ($model->$relation->isEmpty()) {
+            $this->addRow($model);
+
+            return;
+        }
+
+        foreach ($model->$relation as $asset) {
+            $model->$alias = $asset;
+            $this->addRow($model);
+        }
+
+        return;
+    }
+
+    /**
      * @param Model|Collection $model
      *
-     * @throws \League\Csv\CannotInsertRecord
+     * @throws CannotInsertRecord
      */
     public function addRow($model)
     {
@@ -153,7 +179,7 @@ class FlatfileExport
         $fields = $this->configuration->fields();
         $dataAsArray = $this->toArrayWithoutSnakeCasedKeys($this->makeModelAttributesVisible($model));
 
-        // Grap values for eacho column from arrayed model (including relations)
+        // Grap values for each column from arrayed model (including relations)
         $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
             // Get value from arrayed model by column defintion
             $value = Arr::get($dataAsArray, Arr::get($fieldConfigData, 'column'));
@@ -167,7 +193,7 @@ class FlatfileExport
     }
 
     /**
-     * @throws \League\Csv\CannotInsertRecord
+     * @throws CannotInsertRecord
      */
     public function addHeader()
     {
