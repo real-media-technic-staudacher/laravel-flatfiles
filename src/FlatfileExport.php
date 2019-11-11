@@ -141,25 +141,32 @@ class FlatfileExport
     }
 
     /**
-     * @param Model  $model
-     * @param string $relation Name of child relation in model
-     * @param string $alias    Name of attribute set with each model
+     * @param Model        $model
+     * @param string|array $relations Name of child relation in model
+     * @param string       $alias     Name of attribute set with each model
      *
      * @return void
      * @throws CannotInsertRecord
      */
-    public function addRowForEachRelation(Model $model, string $relation, string $alias)
+    public function addRowForEachRelation(Model $model, $relations, string $alias)
     {
-        if (!data_get($model, $relation)) {
-            $this->addRow($model);
+        $relations = !is_array($relations) ? [$relations] : $relations;
+        $hasRelation = false;
 
-            return;
+        foreach ($relations as $relation) {
+            $relation = data_get($model, $relation);
+
+            foreach ($relation as $relationModel) {
+                $hasRelation = true;
+                $model->$alias = $relationModel;
+                $this->addRow($model);
+                unset($model->$alias);
+            }
         }
 
-        foreach (data_get($model, $relation) as $relationModel) {
-            $model->$alias = $relationModel;
+        // has no relations, insert only one row
+        if (!$hasRelation) {
             $this->addRow($model);
-            unset($model->$alias);
         }
     }
 
