@@ -205,6 +205,33 @@ The field defintions are pretty flexible. Better learn by examples by yourself
     ]
 ```
 
+## One row for each relation
+
+If you have a relation you want to put into one row and preserve it's parent as one row if it hasn't a relation, you can
+use the following:
+
+```php
+    public function handle()
+    {
+        // ...
+
+        // relation has to be loaded in items of course
+        $items->each(function (Item $item) use ($export) {
+          $export->addRowForEachRelation($item, ['relation', 'more.*.relations'], 'fieldAccessorAlias');
+        });
+
+        // ...
+    }
+
+    public function fields(): array
+    {
+        return [
+            'fieldAccessorAlias.fieldName' => 'Output of relation fieldName if it is existing',
+            'fieldAccessorAlias.fieldNameMoreRelations' => 'Output of more.*.relations fieldName if it is existing',
+        ];
+    }
+```
+
 ## SYLK file format error
 
 By default, an exception getting thrown if the first column in the header row is named `ID`.
