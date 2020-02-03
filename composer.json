@@ -14,7 +14,7 @@
   "type": "project",
   "require": {
     "php": ">=7.1",
-    "laravel/framework": "5.8.*",
+    "laravel/framework": "6.*",
     "league/csv": "^9.0"
   },
   "require-dev": {

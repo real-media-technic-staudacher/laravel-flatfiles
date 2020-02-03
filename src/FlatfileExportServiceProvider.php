@@ -70,11 +70,11 @@ class FlatfileExportServiceProvider extends ServiceProvider
     {
         $firstTry = collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
-            if ('getMethodDependencies' != array_get($item, 'function')) {
+            if ('getMethodDependencies' != Arr::get($item, 'function')) {
                 return;
             }
 
-            $classRequesting = array_get(array_get($item, 'args', []), '1.0');
+            $classRequesting = Arr::get(Arr::get($item, 'args', []), '1.0');
 
             if (! $classRequesting) {
                 return;
@@ -91,11 +91,11 @@ class FlatfileExportServiceProvider extends ServiceProvider
 
         return collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
-            if ('resolveMethodDependencies' != array_get($item, 'function')) {
+            if ('resolveMethodDependencies' != Arr::get($item, 'function')) {
                 return;
             }
 
-            $classRequesting = array_get(array_get($item, 'args', []), '1');
+            $classRequesting = Arr::get(Arr::get($item, 'args', []), '1');
 
             if (! $classRequesting) {
                 return;
