@@ -237,3 +237,9 @@ use the following:
 By default, an exception getting thrown if the first column in the header row is named `ID`.
 Background for this is the SYLK formatting, which does not allow an flawless opening with Microsoft Excel in some Versions.
 You are free to disable the exception via the config `drivers.csv.ignore_sylk_exception` again.
+
+## Upgrade to v2 from v1
+
+### ```$flatfile->toFile(string $absolutPath)``` is deprecated
+
+Use a disk instead ```$flatfile->to(string relativePath, Filesystem $disk)```

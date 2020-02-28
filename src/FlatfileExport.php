@@ -15,7 +15,7 @@ use League\Csv\Writer;
 class FlatfileExport
 {
     /** @var FlatfileExportConfiguration $configuration */
-    protected $configuration;
+    public $configuration;
 
     /** @var FilesystemAdapter $disk */
     protected $disk;
@@ -23,11 +23,8 @@ class FlatfileExport
     /** @var Writer $writer */
     protected $writer;
 
-    /** @var string $pathToFileOnDisk */
-    protected $pathToFileOnDisk;
-
     /** @var string $pathToFile */
-    public $pathToLocalTmpFile;
+    protected $pathToFile;
 
     /** @var callable|null */
     protected $beforeEachRowCallback;
@@ -55,70 +52,32 @@ class FlatfileExport
     }
 
     /**
-     * @param string                   $targetFilename
-     * @param FilesystemAdapter|string $disk The disk object or the name of it
+     * @param  string  $targetFilepath
+     * @param  FilesystemAdapter|string  $disk  The disk object or the name of it
      *
      * @return FlatfileExport
      * @throws \League\Csv\Exception
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function to(String $targetFilename, $disk)
+    public function to(String $targetFilepath, $disk)
     {
-        $this->pathToFile($targetFilename);
+        $this->pathToFile = $targetFilepath;
 
-        if (is_string($disk)) {
-            $disk = Storage::disk($disk);
-        }
-
-        $this->disk = $disk;
+        $this->disk = is_string($disk) ? Storage::disk($disk) : $disk;
 
         $this->determineDefaultWriter();
+        $this->addBomIfNeeded();
 
         return $this;
     }
 
-    /**
-     * @param string $absoluteFilepath
-     * @param bool   $replace
-     *
-     * @return $this
-     * @throws \League\Csv\Exception
-     */
-    public function toFile(String $absoluteFilepath, $replace = false)
+    public function stream()
     {
-        $fileExists = file_exists($absoluteFilepath);
-
-        if ($replace && $fileExists) {
-            \Log::debug('Delete existing export file: '.$absoluteFilepath);
-            $fileExists = !unlink($absoluteFilepath);
+        if (!$this->disk->exists($this->pathToFile)) {
+            $this->disk->put($this->pathToFile, '');
         }
-
-        if ($fileExists) {
-            throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
-        }
-
-        if (!file_exists(dirname($absoluteFilepath))) {
-            mkdir($absoluteFilepath, 0777, true);
-        }
-
-        $this->pathToFile($absoluteFilepath);
-        $this->determineDefaultWriter();
-
-        return $this;
-    }
-
-    /**
-     * You can set a file location for the temporary file used to generate the export file. It's only locally, because
-     * we're using a streaming API.
-     *
-     * @param string $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
-     *
-     * @return $this
-     */
-    public function usingLocalTmpFile(String $tempFilename)
-    {
-        $this->pathToLocalTmpFile = $tempFilename;
-
-        return $this;
+        
+        return $this->disk->readStream($this->pathToFile);
     }
 
     public function beforeEachRow(callable $callback)
@@ -129,7 +88,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Collection|Model[] $models
+     * @param  Collection|Model[]  $models
      *
      * @throws CannotInsertRecord
      */
@@ -141,9 +100,9 @@ class FlatfileExport
     }
 
     /**
-     * @param Model        $model
-     * @param string|array $relations Name of child relation in model
-     * @param string       $alias     Name of attribute set with each model
+     * @param  Model  $model
+     * @param  string|array  $relations  Name of child relation in model
+     * @param  string  $alias  Name of attribute set with each model
      *
      * @return void
      * @throws CannotInsertRecord
@@ -171,7 +130,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Model|Collection $model
+     * @param  Model|Collection  $model
      *
      * @throws CannotInsertRecord
      */
@@ -205,26 +164,10 @@ class FlatfileExport
         $this->writer->insertOne($this->configuration->fieldLabels());
     }
 
-    public function moveToTarget()
-    {
-        $this->addBomIfNeeded();
-
-        if (!$this->usesDisk()) {
-            if ($this->pathToLocalTmpFile == $this->pathToFile()) {
-                return true;
-            }
-
-            return rename($this->pathToLocalTmpFile, $this->pathToFile());
-        }
-
-        $this->disk()->putStream($this->pathToFile(), fopen($this->pathToLocalTmpFile, 'r'));
-
-        return unlink($this->pathToLocalTmpFile);
-    }
-
     /**
-     * @return $this
+     * @return static
      * @throws \League\Csv\Exception
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
     private function determineDefaultWriter()
     {
@@ -232,15 +175,7 @@ class FlatfileExport
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
-                if (!$this->pathToLocalTmpFile) {
-                    if ($this->usesDisk()) {
-                        $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
-                    } else {
-                        $this->pathToLocalTmpFile = $this->pathToFile();
-                    }
-                }
-
-                $this->writer = Writer::createFromPath($this->pathToLocalTmpFile, 'w+');
+                $this->writer = Writer::createFromStream($this->stream());
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
 
@@ -259,31 +194,7 @@ class FlatfileExport
 
     protected function targetfileExtension()
     {
-        return Str::lower(pathinfo($this->pathToFile(), PATHINFO_EXTENSION));
-    }
-
-    public function pathToFile(String $relativePathToFileOnDisk = null)
-    {
-        if (is_null($relativePathToFileOnDisk)) {
-            return $this->pathToFileOnDisk;
-        }
-
-        $this->pathToFileOnDisk = $relativePathToFileOnDisk;
-
-        return $this;
-    }
-
-    /**
-     * @return FilesystemAdapter
-     */
-    public function disk()
-    {
-        return $this->disk;
-    }
-
-    public function configuration()
-    {
-        return $this->configuration;
+        return Str::lower(pathinfo($this->pathToFile, PATHINFO_EXTENSION));
     }
 
     private function applyRowCallback(&$model)
@@ -298,7 +209,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Model|Collection $model
+     * @param  Model|Collection  $model
      *
      * @return Model|Collection
      */
@@ -311,25 +222,10 @@ class FlatfileExport
         return $model->makeVisible($this->configuration->columns());
     }
 
-    private function usesDisk()
-    {
-        return $this->disk() !== null;
-    }
-
     private function addBomIfNeeded()
     {
-        if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
-            file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
-            $this->bomNeedsToBeAdded = false;
-        }
-    }
-
-    public function checkbom()
-    {
-        $str = file_get_contents($this->pathToLocalTmpFile);
-        $bom = pack('CCC', 0xef, 0xbb, 0xbf);
-
-        return 0 === strncmp($str, $bom, 3);
+        fseek($this->stream(), 0);
+        fwrite($this->stream(), Writer::BOM_UTF8);
     }
 
     private function toArrayWithoutSnakeCasedKeys($model)
@@ -370,17 +266,13 @@ class FlatfileExport
     }
 
     /**
-     * @param string|null $filename
-     * @param array       $headers
+     * @param  string|null  $filename
+     * @param  array  $headers
      *
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\StreamedResponse
      */
     public function downloadResponse(string $filename = null, array $headers = [])
     {
-        if ($this->usesDisk()) {
-            return $this->disk()->download($this->pathToFile(), $filename, $headers);
-        }
-
-        return response()->download($this->pathToFile(), $filename, $headers);
+        return $this->disk->download($this->pathToFile, $filename, $headers);
     }
 }
