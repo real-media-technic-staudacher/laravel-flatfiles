@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v0.5
+### Added
+- Support for Laravel 7
+
 ## v0.4.1
 ### Added
 - #11 SYLK file format error
