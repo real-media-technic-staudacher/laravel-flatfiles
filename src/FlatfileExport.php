@@ -11,11 +11,12 @@ use Illuminate\Support\Str;
 use LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
+use League\Flysystem\Adapter\Local;
 
 class FlatfileExport
 {
     /** @var FlatfileExportConfiguration $configuration */
-    protected $configuration;
+    public $configuration;
 
     /** @var FilesystemAdapter $disk */
     protected $disk;
@@ -55,52 +56,16 @@ class FlatfileExport
     }
 
     /**
-     * @param string                   $targetFilename
-     * @param FilesystemAdapter|string $disk The disk object or the name of it
+     * @param  string  $targetFilename
+     * @param  FilesystemAdapter|string  $disk  The disk object or the name of it
      *
      * @return FlatfileExport
-     * @throws \League\Csv\Exception
      */
     public function to(String $targetFilename, $disk)
     {
-        $this->pathToFile($targetFilename);
+        $this->pathToFileOnDisk = $targetFilename;
+        $this->disk = is_string($disk) ? Storage::disk($disk) : $disk;
 
-        if (is_string($disk)) {
-            $disk = Storage::disk($disk);
-        }
-
-        $this->disk = $disk;
-
-        $this->determineDefaultWriter();
-
-        return $this;
-    }
-
-    /**
-     * @param string $absoluteFilepath
-     * @param bool   $replace
-     *
-     * @return $this
-     * @throws \League\Csv\Exception
-     */
-    public function toFile(String $absoluteFilepath, $replace = false)
-    {
-        $fileExists = file_exists($absoluteFilepath);
-
-        if ($replace && $fileExists) {
-            \Log::debug('Delete existing export file: '.$absoluteFilepath);
-            $fileExists = !unlink($absoluteFilepath);
-        }
-
-        if ($fileExists) {
-            throw new \RuntimeException('Target export file already exists at: '.$absoluteFilepath);
-        }
-
-        if (!file_exists(dirname($absoluteFilepath))) {
-            mkdir($absoluteFilepath, 0777, true);
-        }
-
-        $this->pathToFile($absoluteFilepath);
         $this->determineDefaultWriter();
 
         return $this;
@@ -110,13 +75,13 @@ class FlatfileExport
      * You can set a file location for the temporary file used to generate the export file. It's only locally, because
      * we're using a streaming API.
      *
-     * @param string $tempFilename Absolut path to local disk to store a local temp file (before moving to final location)
+     * @param  string  $tempFilepath  Absolut path to local disk to store a local temp file (before moving to final location)
      *
      * @return $this
      */
-    public function usingLocalTmpFile(String $tempFilename)
+    public function usingLocalTmpFile(String $tempFilepath)
     {
-        $this->pathToLocalTmpFile = $tempFilename;
+        $this->pathToLocalTmpFile = $tempFilepath;
 
         return $this;
     }
@@ -129,7 +94,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Collection|Model[] $models
+     * @param  Collection|Model[]  $models
      *
      * @throws CannotInsertRecord
      */
@@ -141,9 +106,9 @@ class FlatfileExport
     }
 
     /**
-     * @param Model        $model
-     * @param string|array $relations Name of child relation in model
-     * @param string       $alias     Name of attribute set with each model
+     * @param  Model  $model
+     * @param  string|array  $relations  Name of child relation in model
+     * @param  string  $alias  Name of attribute set with each model
      *
      * @return void
      * @throws CannotInsertRecord
@@ -171,7 +136,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Model|Collection $model
+     * @param  Model|Collection  $model
      *
      * @throws CannotInsertRecord
      */
@@ -197,11 +162,9 @@ class FlatfileExport
         })->toArray());
     }
 
-    /**
-     * @throws CannotInsertRecord
-     */
     public function addHeader()
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->writer->insertOne($this->configuration->fieldLabels());
     }
 
@@ -209,23 +172,18 @@ class FlatfileExport
     {
         $this->addBomIfNeeded();
 
-        if (!$this->usesDisk()) {
-            if ($this->pathToLocalTmpFile == $this->pathToFile()) {
-                return true;
-            }
-
-            return rename($this->pathToLocalTmpFile, $this->pathToFile());
+        if ($this->disk instanceof Local && $this->disk->path($this->pathToFileOnDisk) == $this->pathToLocalTmpFile) {
+            // No temp file that has be moved
+            return true;
         }
 
-        $this->disk()->putStream($this->pathToFile(), fopen($this->pathToLocalTmpFile, 'r'));
+        if ($this->disk->putStream($this->pathToFileOnDisk, fopen($this->pathToLocalTmpFile, 'r'))) {
+            return unlink($this->pathToLocalTmpFile);
+        }
 
-        return unlink($this->pathToLocalTmpFile);
+        return false;
     }
 
-    /**
-     * @return $this
-     * @throws \League\Csv\Exception
-     */
     private function determineDefaultWriter()
     {
         $writer = null;
@@ -233,22 +191,24 @@ class FlatfileExport
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
                 if (!$this->pathToLocalTmpFile) {
-                    if ($this->usesDisk()) {
-                        $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
+                    if ($this->disk instanceof Local) {
+                        $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
                     } else {
-                        $this->pathToLocalTmpFile = $this->pathToFile();
+                        $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     }
                 }
 
                 $this->writer = Writer::createFromPath($this->pathToLocalTmpFile, 'w+');
+                /** @noinspection PhpUnhandledExceptionInspection */
                 $this->writer->setDelimiter($this->configuration->get('csv', 'delimiter'));
+                /** @noinspection PhpUnhandledExceptionInspection */
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
 
                 if ($this->configuration->get('csv', 'force_enclosure')) {
                     $this->addForceEnclosure();
                 }
 
-//                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
+                $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
                 break;
             default:
                 throw new \RuntimeException('Unsupported file type: .'.$extension);
@@ -259,18 +219,7 @@ class FlatfileExport
 
     protected function targetfileExtension()
     {
-        return Str::lower(pathinfo($this->pathToFile(), PATHINFO_EXTENSION));
-    }
-
-    public function pathToFile(String $relativePathToFileOnDisk = null)
-    {
-        if (is_null($relativePathToFileOnDisk)) {
-            return $this->pathToFileOnDisk;
-        }
-
-        $this->pathToFileOnDisk = $relativePathToFileOnDisk;
-
-        return $this;
+        return Str::lower(pathinfo($this->pathToFileOnDisk, PATHINFO_EXTENSION));
     }
 
     /**
@@ -298,7 +247,7 @@ class FlatfileExport
     }
 
     /**
-     * @param Model|Collection $model
+     * @param  Model|Collection  $model
      *
      * @return Model|Collection
      */
@@ -349,8 +298,6 @@ class FlatfileExport
 
     /**
      * adding an StreamFilter to force the enclosure of each cell.
-     *
-     * @throws \League\Csv\Exception
      */
     private function addForceEnclosure()
     {
@@ -366,21 +313,18 @@ class FlatfileExport
 
         $this->writer->addFormatter($addSequence);
         RemoveSequence::registerStreamFilter();
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
     }
 
     /**
-     * @param string|null $filename
-     * @param array       $headers
+     * @param  string|null  $filename
+     * @param  array  $headers
      *
      * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\StreamedResponse
      */
     public function downloadResponse(string $filename = null, array $headers = [])
     {
-        if ($this->usesDisk()) {
-            return $this->disk()->download($this->pathToFile(), $filename, $headers);
-        }
-
-        return response()->download($this->pathToFile(), $filename, $headers);
+        return $this->disk()->download($this->pathToFileOnDisk, $filename, $headers);
     }
 }
