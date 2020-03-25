@@ -69,7 +69,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
                     return 'value';
                 },
             ],
-        ], $this->flatfile->configuration()->fields()->values()->toArray());
+        ], $this->flatfile->configuration->fields()->values()->toArray());
     }
 
     /** @test */
@@ -81,7 +81,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
             'special.field',
             'field_where_label_equals_field',
             'field_where_label_equals_field_with_callback',
-        ], $this->flatfile->configuration()->columns());
+        ], $this->flatfile->configuration->columns());
     }
 
     /** @test */
@@ -93,6 +93,6 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
             'Special Label',
             'field_where_label_equals_field',
             'field_where_label_equals_field_with_callback',
-        ], $this->flatfile->configuration()->fieldLabels());
+        ], $this->flatfile->configuration->fieldLabels());
     }
 }
