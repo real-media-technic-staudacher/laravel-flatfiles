@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v2.0.1
+### Fixed
+- Fixed issue with local disks
+
 ## v2.0
 ### Changed
 - Removed support for absolut local filepaths. You now always need a laravel disk

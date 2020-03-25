@@ -172,7 +172,7 @@ class FlatfileExport
     {
         $this->addBomIfNeeded();
 
-        if ($this->disk instanceof Local && $this->disk->path($this->pathToFileOnDisk) == $this->pathToLocalTmpFile) {
+        if ($this->disk->getAdapter() instanceof Local && $this->disk->path($this->pathToFileOnDisk) == $this->pathToLocalTmpFile) {
             // No temp file that has be moved
             return true;
         }
@@ -191,7 +191,7 @@ class FlatfileExport
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
                 if (!$this->pathToLocalTmpFile) {
-                    if ($this->disk instanceof Local) {
+                    if ($this->disk->getAdapter() instanceof Local) {
                         $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
                     } else {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
