@@ -4,5 +4,5 @@ namespace LaravelFlatfiles;
 
 interface FlatfileFields
 {
-    public function fields();
+    public function fields(): array;
 }

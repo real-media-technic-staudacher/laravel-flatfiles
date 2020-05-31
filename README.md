@@ -68,10 +68,10 @@ class ExportJob implements ShouldQueue, FlatfileFields
         $flatfile->moveToTarget();
     }
     
-    // In your field defintion to are supposed to "only" pick out loaded or prepared data instead of
+    // In your field definition to are supposed to "only" pick out loaded or prepared data instead of
     // doing complex calculations (See beforeEachRow())
     public function fields() {
-        return []; // Your field defintion
+        return []; // Your field definition
     }
     
     // Return an elequent query builder and carefully eager load relations you will gonna use in your cells!
