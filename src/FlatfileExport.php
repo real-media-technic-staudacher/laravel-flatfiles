@@ -199,6 +199,12 @@ class FlatfileExport
                     /** @noinspection PhpUndefinedMethodInspection */
                     if ($this->disk->getAdapter() instanceof Local) {
                         $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
+
+                        $localFileDirectory = pathinfo($this->pathToLocalTmpFile, PATHINFO_DIRNAME);
+
+                        if (!mkdir($localFileDirectory, 0777, true) && !is_dir($localFileDirectory)) {
+                            throw new \RuntimeException(sprintf('Directory "%s" was not created', $localFileDirectory));
+                        }
                     } else {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     }
