@@ -88,7 +88,7 @@ class FlatfileExportConfiguration
         return Arr::get($this->configuration, "drivers.{$driver}.{$key}", $default);
     }
 
-    public function set($driver, $key, $value)
+    public function set($driver, $key, $value): array
     {
         return Arr::set($this->configuration, "drivers.{$driver}.{$key}", $value);
     }
