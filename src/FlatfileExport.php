@@ -12,6 +12,9 @@ use LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use League\Flysystem\Adapter\Local;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FlatfileExport
 {
@@ -48,7 +51,7 @@ class FlatfileExport
         }
     }
 
-    public function withFields(FlatfileFields $flatfileFields)
+    public function withFields(FlatfileFields $flatfileFields): self
     {
         $this->configuration->fields($flatfileFields->fields());
 
@@ -56,14 +59,14 @@ class FlatfileExport
     }
 
     /**
-     * @param  string  $targetFilename
+     * @param  string  $targetFilepath
      * @param  FilesystemAdapter|string  $disk  The disk object or the name of it
      *
      * @return FlatfileExport
      */
-    public function to(String $targetFilename, $disk)
+    public function to(string $targetFilepath, $disk): FlatfileExport
     {
-        $this->pathToFileOnDisk = $targetFilename;
+        $this->pathToFileOnDisk = $targetFilepath;
         $this->disk = is_string($disk) ? Storage::disk($disk) : $disk;
 
         $this->determineDefaultWriter();
@@ -79,14 +82,14 @@ class FlatfileExport
      *
      * @return $this
      */
-    public function usingLocalTmpFile(String $tempFilepath)
+    public function usingLocalTmpFile(string $tempFilepath): self
     {
         $this->pathToLocalTmpFile = $tempFilepath;
 
         return $this;
     }
 
-    public function beforeEachRow(callable $callback)
+    public function beforeEachRow(callable $callback): FlatfileExport
     {
         $this->beforeEachRowCallback = $callback;
 
@@ -98,7 +101,7 @@ class FlatfileExport
      *
      * @throws CannotInsertRecord
      */
-    public function addRows(Collection $models)
+    public function addRows(Collection $models): void
     {
         foreach ($models as $model) {
             $this->addRow($model);
@@ -113,7 +116,7 @@ class FlatfileExport
      * @return void
      * @throws CannotInsertRecord
      */
-    public function addRowForEachRelation(Model $model, $relations, string $alias)
+    public function addRowForEachRelation(Model $model, $relations, string $alias): void
     {
         $relations = !is_array($relations) ? [$relations] : $relations;
         $hasRelation = false;
@@ -140,7 +143,7 @@ class FlatfileExport
      *
      * @throws CannotInsertRecord
      */
-    public function addRow($model)
+    public function addRow($model): void
     {
         if (false === $this->applyRowCallback($model)) {
             return;
@@ -150,7 +153,7 @@ class FlatfileExport
         $dataAsArray = $this->toArrayWithoutSnakeCasedKeys($this->makeModelAttributesVisible($model));
 
         // Grap values for each column from arrayed model (including relations)
-        $this->writer->insertOne($fields->map(function (array $fieldConfigData) use ($dataAsArray, $model) {
+        $this->writer->insertOne($fields->map(static function (array $fieldConfigData) use ($dataAsArray, $model) {
             // Get value from arrayed model by column defintion
             $value = Arr::get($dataAsArray, Arr::get($fieldConfigData, 'column'));
 
@@ -162,35 +165,38 @@ class FlatfileExport
         })->toArray());
     }
 
-    public function addHeader()
+    public function addHeader(): void
     {
         /** @noinspection PhpUnhandledExceptionInspection */
         $this->writer->insertOne($this->configuration->fieldLabels());
     }
 
-    public function moveToTarget()
+    public function moveToTarget(): bool
     {
         $this->addBomIfNeeded();
 
-        if ($this->disk->getAdapter() instanceof Local && $this->disk->path($this->pathToFileOnDisk) == $this->pathToLocalTmpFile) {
+        /** @noinspection PhpUndefinedMethodInspection */
+        if ($this->disk->getAdapter() instanceof Local
+            && $this->disk->path($this->pathToFileOnDisk) === $this->pathToLocalTmpFile) {
             // No temp file that has be moved
             return true;
         }
 
-        if ($this->disk->putStream($this->pathToFileOnDisk, fopen($this->pathToLocalTmpFile, 'r'))) {
+        if ($this->disk->putStream($this->pathToFileOnDisk, fopen($this->pathToLocalTmpFile, 'rb'))) {
             return unlink($this->pathToLocalTmpFile);
         }
 
         return false;
     }
 
-    private function determineDefaultWriter()
+    private function determineDefaultWriter(): FlatfileExport
     {
         $writer = null;
 
         switch ($extension = $this->targetfileExtension()) {
             case 'csv':
                 if (!$this->pathToLocalTmpFile) {
+                    /** @noinspection PhpUndefinedMethodInspection */
                     if ($this->disk->getAdapter() instanceof Local) {
                         $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
                     } else {
@@ -211,13 +217,13 @@ class FlatfileExport
                 $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
                 break;
             default:
-                throw new \RuntimeException('Unsupported file type: .'.$extension);
+                throw new RuntimeException('Unsupported file type: .'.$extension);
         }
 
         return $this;
     }
 
-    protected function targetfileExtension()
+    protected function targetfileExtension(): string
     {
         return Str::lower(pathinfo($this->pathToFileOnDisk, PATHINFO_EXTENSION));
     }
@@ -225,17 +231,17 @@ class FlatfileExport
     /**
      * @return FilesystemAdapter
      */
-    public function disk()
+    public function disk(): FilesystemAdapter
     {
         return $this->disk;
     }
 
-    public function configuration()
+    public function configuration(): FlatfileExportConfiguration
     {
         return $this->configuration;
     }
 
-    private function applyRowCallback(&$model)
+    private function applyRowCallback(&$model): bool
     {
         $callback = $this->beforeEachRowCallback;
 
@@ -260,12 +266,7 @@ class FlatfileExport
         return $model->makeVisible($this->configuration->columns());
     }
 
-    private function usesDisk()
-    {
-        return $this->disk() !== null;
-    }
-
-    private function addBomIfNeeded()
+    private function addBomIfNeeded(): void
     {
         if ($this->bomNeedsToBeAdded && !$this->checkbom()) {
             file_put_contents($this->pathToLocalTmpFile, Writer::BOM_UTF8.file_get_contents($this->pathToLocalTmpFile));
@@ -273,7 +274,7 @@ class FlatfileExport
         }
     }
 
-    public function checkbom()
+    public function checkbom(): bool
     {
         $str = file_get_contents($this->pathToLocalTmpFile);
         $bom = pack('CCC', 0xef, 0xbb, 0xbf);
@@ -281,7 +282,7 @@ class FlatfileExport
         return 0 === strncmp($str, $bom, 3);
     }
 
-    private function toArrayWithoutSnakeCasedKeys($model)
+    private function toArrayWithoutSnakeCasedKeys($model): array
     {
         if (!($model instanceof Model)) {
             return $model->toArray();
@@ -299,10 +300,10 @@ class FlatfileExport
     /**
      * adding an StreamFilter to force the enclosure of each cell.
      */
-    private function addForceEnclosure()
+    private function addForceEnclosure(): void
     {
         $sequence = "\t\x1f";
-        $addSequence = function (array $row) use ($sequence) {
+        $addSequence = static function (array $row) use ($sequence) {
             $res = [];
             foreach ($row as $value) {
                 $res[] = $sequence.$value;
@@ -321,7 +322,7 @@ class FlatfileExport
      * @param  string|null  $filename
      * @param  array  $headers
      *
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     * @return BinaryFileResponse|StreamedResponse
      */
     public function downloadResponse(string $filename = null, array $headers = [])
     {
