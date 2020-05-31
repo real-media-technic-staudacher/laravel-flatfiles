@@ -41,10 +41,10 @@ class ExportJob implements ShouldQueue, FlatfileFields
 {
     // FlatfileExporter magically find out, whether your auto-injecting method's class implement the FlatfileFields-interface!
     // If so, it use this field definition by default
-    public function handle(FlatfileExport $flatfile, $exportFilepath = '/var/www/html/storage/export.csv')
+    public function handle(FlatfileExport $flatfile, $exportFilepath = '/subfolderOnDisk/export.csv')
     {
         // Expose where to export the file. Based on file extension (ie. .csv) we select the proper exporter for you)
-        $flatfile->toFile($exportFilepath, $replaceIfExisting = true);
+        $flatfile->to($exportFilepath, 'diskNameOrInstance');
     
         $flatfile->addHeader();
     
@@ -107,26 +107,13 @@ If you want to use a dedicated class for field definitions are get the array fro
 
 ## Specify target file / location
 
-### Local path
-
-- You're a free where the file should be written to
-- It will not generate a temporary file first
-
-```php
-    $flatfile->toFile('absolute/path/to/file-with-extension.csv');
-```
-
-If you want a temporary file first, use
-
-!! TODO !!
-
 ### Using filesystem disk
 
 - This enables you to export to all available filesystem drivers
 - Exports are generated locally/temporary first and than streamed to disk
 
 ```php
-    $flatfile->to('/relative/path/to/file-with-extension.csv', Storage::disk('name'));
+    $flatfile->to('relative/path/to/file-with-extension.csv', Storage::disk('name'));
     
     // Do export ...
     
@@ -144,7 +131,7 @@ If you want a temporary file first, use
     public function handle()
     {
         $flatfile = app(FlatfileExport::class, [$this]);
-        $flatfile->toFile($this->csvFilepath);
+        $flatfile->to($this->csvFilepath, $this->disk);
 
         // Optionally add a Header
         $flatfile->addHeader();
