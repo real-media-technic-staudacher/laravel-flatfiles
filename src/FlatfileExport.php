@@ -202,9 +202,11 @@ class FlatfileExport
 
                         $localFileDirectory = pathinfo($this->pathToLocalTmpFile, PATHINFO_DIRNAME);
 
-                        if (!mkdir($localFileDirectory, 0777, true) && !is_dir($localFileDirectory)) {
+                        if (!file_exists($localFileDirectory) && !mkdir($localFileDirectory, 0777,
+                                true) && !is_dir($localFileDirectory)) {
                             throw new \RuntimeException(sprintf('Directory "%s" was not created', $localFileDirectory));
                         }
+
                     } else {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     }
