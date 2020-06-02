@@ -204,7 +204,7 @@ use the following:
 
         // relation has to be loaded in items of course
         $items->each(function (Item $item) use ($export) {
-          $export->addRowForEachRelation($item, ['relation', 'more.*.relations'], 'fieldAccessorAlias');
+          $export->addRowForEachRelation($item, ['relation', 'more.*.relations'], 'fieldAccessorAlias', true);
         });
 
         // ...
