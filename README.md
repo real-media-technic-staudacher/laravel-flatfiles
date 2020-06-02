@@ -70,7 +70,7 @@ class ExportJob implements ShouldQueue, FlatfileFields
     
     // In your field definition to are supposed to "only" pick out loaded or prepared data instead of
     // doing complex calculations (See beforeEachRow())
-    public function fields() {
+    public function fields(): array {
         return []; // Your field definition
     }
     

@@ -2,28 +2,28 @@
 
 namespace LaravelFlatfilesTest\Unit;
 
-use RealMediaTechnicStaudacher\LaravelFlatfilesTest\TestCase;
 use RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileExport;
 use RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileFields;
+use RealMediaTechnicStaudacher\LaravelFlatfilesTest\TestCase;
 
 class ValidConfigurationTest extends TestCase implements FlatfileFields
 {
     /** @var FlatfileExport $flatfile */
     protected $flatfile;
 
-    public function fields()
+    public function fields(): array
     {
         return [
-            'field'                                        => 'Label',
-            'relation.field'                               => [
-                'label'    => 'Custom label',
+            'field' => 'Label',
+            'relation.field' => [
+                'label' => 'Custom label',
                 'callback' => function ($field) {
                     return $field;
                 },
             ],
             [
                 'column' => 'special.field',
-                'label'  => 'Special Label',
+                'label' => 'Special Label',
             ],
             'field_where_label_equals_field',
             'field_where_label_equals_field_with_callback' => function () {
@@ -45,26 +45,26 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
         $this->assertEquals([
             [
                 'column' => 'field',
-                'label'  => 'Label',
+                'label' => 'Label',
             ],
             [
-                'column'   => 'relation.field',
-                'label'    => 'Custom label',
+                'column' => 'relation.field',
+                'label' => 'Custom label',
                 'callback' => function ($field) {
                     return $field;
                 },
             ],
             [
                 'column' => 'special.field',
-                'label'  => 'Special Label',
+                'label' => 'Special Label',
             ],
             [
                 'column' => 'field_where_label_equals_field',
-                'label'  => 'field_where_label_equals_field',
+                'label' => 'field_where_label_equals_field',
             ],
             [
-                'column'   => 'field_where_label_equals_field_with_callback',
-                'label'    => 'field_where_label_equals_field_with_callback',
+                'column' => 'field_where_label_equals_field_with_callback',
+                'label' => 'field_where_label_equals_field_with_callback',
                 'callback' => function () {
                     return 'value';
                 },

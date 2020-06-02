@@ -204,7 +204,7 @@ class FlatfileExport
 
                         if (!file_exists($localFileDirectory) && !mkdir($localFileDirectory, 0777,
                                 true) && !is_dir($localFileDirectory)) {
-                            throw new \RuntimeException(sprintf('Directory "%s" was not created', $localFileDirectory));
+                            throw new RuntimeException(sprintf('Directory "%s" was not created', $localFileDirectory));
                         }
 
                     } else {
