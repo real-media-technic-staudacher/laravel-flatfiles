@@ -178,13 +178,13 @@ The field defintions are pretty flexible. Better learn by examples by yourself
         [
             'label'    => 'Label with special characters',
             'column'   => 'relation.columnOfRelation', // Value of param $value in callback (optional)
-            'callback' => function ($value, $model) { // Format cell values
+            'callback' => function ($model, $value) { // Format cell values
                 return $model->currencySign.' '.number_format($value);
             }
         ],
         'attribute' => [ // Column name can also still be the key of the array
             'label'    => 'Label with special characters',
-            'callback' => function ($value, $model) {}
+            'callback' => function ($model, $value) {}
         ],
         'Column header' => function() { // For callbacks the header label can also be specified in the key! Crazy...
             return 'static cell content';
