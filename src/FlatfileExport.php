@@ -112,11 +112,11 @@ class FlatfileExport
      * @param  Model  $model
      * @param  string|array  $relations  Name of child relation in model
      * @param  string  $alias  Name of attribute set with each model
-     *
+     * @param  bool  $skipWithoutRelations If there is no relation, skip line or not?
      * @return void
      * @throws CannotInsertRecord
      */
-    public function addRowForEachRelation(Model $model, $relations, string $alias): void
+    public function addRowForEachRelation(Model $model, $relations, string $alias, $skipWithoutRelations = false): void
     {
         $relations = !is_array($relations) ? [$relations] : $relations;
         $hasRelation = false;
@@ -128,12 +128,13 @@ class FlatfileExport
                 $hasRelation = true;
                 $model->$alias = $relationModel;
                 $this->addRow($model);
+
                 unset($model->$alias);
             }
         }
 
         // has no relations, insert only one row
-        if (!$hasRelation) {
+        if (!$hasRelation && !$skipWithoutRelations) {
             $this->addRow($model);
         }
     }
