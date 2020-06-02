@@ -23,12 +23,12 @@
   },
   "autoload": {
     "psr-4": {
-      "LaravelFlatfiles\\": "src"
+      "RealMediaTechnicStaudacher\\LaravelFlatfiles\\": "src"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "LaravelFlatfilesTest\\": "tests"
+      "RealMediaTechnicStaudacher\\LaravelFlatfilesTest\\": "tests"
     }
   },
   "config": {
@@ -37,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "LaravelFlatfiles\\FlatfileExportServiceProvider"
+        "RealMediaTechnicStaudacher\\LaravelFlatfiles\\FlatfileExportServiceProvider"
       ],
       "aliases": {
       }

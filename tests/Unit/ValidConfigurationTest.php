@@ -2,9 +2,9 @@
 
 namespace LaravelFlatfilesTest\Unit;
 
-use LaravelFlatfilesTest\TestCase;
-use LaravelFlatfiles\FlatfileExport;
-use LaravelFlatfiles\FlatfileFields;
+use RealMediaTechnicStaudacher\LaravelFlatfilesTest\TestCase;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileExport;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileFields;
 
 class ValidConfigurationTest extends TestCase implements FlatfileFields
 {

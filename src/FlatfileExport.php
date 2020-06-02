@@ -8,7 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use LaravelFlatfiles\StreamFilters\RemoveSequence;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use League\Flysystem\Adapter\Local;

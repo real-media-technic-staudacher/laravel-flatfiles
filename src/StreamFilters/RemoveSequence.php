@@ -3,7 +3,7 @@
  * thanks to https://nyamsprod.com/blog/2015/qa-enforcing-enclosure-with-leaguecsv/.
  */
 
-namespace LaravelFlatfiles\StreamFilters;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters;
 
 use League\Csv\AbstractCsv;
 use InvalidArgumentException;

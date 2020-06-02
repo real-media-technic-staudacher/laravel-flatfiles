@@ -47,8 +47,7 @@ class FlatfileExportServiceProvider extends ServiceProvider
 
     private function registerCommands()
     {
-        /* @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        $this->commands([//            \LaravelFlatfiles\Command::class,
+        $this->commands([
         ]);
     }
 

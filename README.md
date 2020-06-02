@@ -12,7 +12,7 @@ To overwrite the default configuration
 
     php artisan vendor:publish
 
-Then select the option `Provider: LaravelFlatfiles\FlatfileExportServiceProvider`. The default configuration looks like:
+Then select the option `Provider: RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileExportServiceProvider`. The default configuration looks like:
 
 ```php
 return [
