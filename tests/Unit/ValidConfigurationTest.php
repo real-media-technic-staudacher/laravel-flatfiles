@@ -17,7 +17,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
             'field' => 'Label',
             'relation.field' => [
                 'label' => 'Custom label',
-                'callback' => function ($field) {
+                'callback' => function ($field, $value) {
                     return $field;
                 },
             ],

@@ -158,7 +158,7 @@ class FlatfileExport
             $value = Arr::get($dataAsArray, Arr::get($fieldConfigData, 'column'));
 
             if ($callback = Arr::get($fieldConfigData, 'callback')) {
-                $value = $callback($value, $model) ?? $value;
+                $value = $callback($model, $value) ?? $value;
             }
 
             return $value;
