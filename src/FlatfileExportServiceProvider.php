@@ -3,7 +3,7 @@
  * Copyright (c) 2015-2018  real media technic staudacher.
  */
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 use Illuminate\Support\Arr;
 use Illuminate\Foundation\Application;

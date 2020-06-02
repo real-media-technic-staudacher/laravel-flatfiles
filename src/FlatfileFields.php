@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 interface FlatfileFields
 {

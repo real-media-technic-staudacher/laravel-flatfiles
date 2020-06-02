@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -8,10 +8,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use League\Flysystem\Adapter\Local;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;

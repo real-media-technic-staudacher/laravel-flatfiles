@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 use Closure;
 use Illuminate\Support\Arr;
