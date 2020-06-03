@@ -1,6 +1,6 @@
 <?php
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -8,10 +8,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use LaravelFlatfiles\StreamFilters\RemoveSequence;
 use League\Csv\CannotInsertRecord;
 use League\Csv\Writer;
 use League\Flysystem\Adapter\Local;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -112,11 +112,11 @@ class FlatfileExport
      * @param  Model  $model
      * @param  string|array  $relations  Name of child relation in model
      * @param  string  $alias  Name of attribute set with each model
-     *
+     * @param  bool  $skipWithoutRelations If there is no relation, skip line or not?
      * @return void
      * @throws CannotInsertRecord
      */
-    public function addRowForEachRelation(Model $model, $relations, string $alias): void
+    public function addRowForEachRelation(Model $model, $relations, string $alias, $skipWithoutRelations = false): void
     {
         $relations = !is_array($relations) ? [$relations] : $relations;
         $hasRelation = false;
@@ -128,12 +128,13 @@ class FlatfileExport
                 $hasRelation = true;
                 $model->$alias = $relationModel;
                 $this->addRow($model);
+
                 unset($model->$alias);
             }
         }
 
         // has no relations, insert only one row
-        if (!$hasRelation) {
+        if (!$hasRelation && !$skipWithoutRelations) {
             $this->addRow($model);
         }
     }
@@ -158,7 +159,7 @@ class FlatfileExport
             $value = Arr::get($dataAsArray, Arr::get($fieldConfigData, 'column'));
 
             if ($callback = Arr::get($fieldConfigData, 'callback')) {
-                $value = $callback($value, $model) ?? $value;
+                $value = $callback($model, $value) ?? $value;
             }
 
             return $value;
@@ -199,6 +200,14 @@ class FlatfileExport
                     /** @noinspection PhpUndefinedMethodInspection */
                     if ($this->disk->getAdapter() instanceof Local) {
                         $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
+
+                        $localFileDirectory = pathinfo($this->pathToLocalTmpFile, PATHINFO_DIRNAME);
+
+                        if (!file_exists($localFileDirectory) && !mkdir($localFileDirectory, 0777,
+                                true) && !is_dir($localFileDirectory)) {
+                            throw new RuntimeException(sprintf('Directory "%s" was not created', $localFileDirectory));
+                        }
+
                     } else {
                         $this->pathToLocalTmpFile = tempnam(sys_get_temp_dir(), 'ffe');
                     }

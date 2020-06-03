@@ -1,8 +1,9 @@
 <?php
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
 use Closure;
+use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
@@ -19,7 +20,7 @@ class FlatfileExportConfiguration
     }
 
     /**
-     * @param array|null $fields
+     * @param  array|null  $fields
      *
      * @return $this|Collection
      */
@@ -34,7 +35,7 @@ class FlatfileExportConfiguration
             $callback = null;
 
             if (is_array($value)) {
-                if (! Arr::exists($value, 'column')) {
+                if (!Arr::exists($value, 'column')) {
                     return Arr::add($value, 'column', $key);
                 }
 
@@ -52,27 +53,31 @@ class FlatfileExportConfiguration
 
             if ($callback) {
                 return [
-                    'column'   => $key,
-                    'label'    => $value,
+                    'column' => $key,
+                    'label' => $value,
                     'callback' => $callback,
                 ];
             }
 
             return [
                 'column' => $key,
-                'label'  => $value,
+                'label' => $value,
             ];
         })->values();
 
         return $this;
     }
 
+    /**
+     * @return array
+     * @throws Exception
+     */
     public function fieldLabels(): array
     {
         $labels = $this->fields()->pluck('label');
 
         if (!$this->get('csv', 'ignore_sylk_exception') && strcmp($labels->first(), 'ID') === 0) {
-            throw new \Exception("SYLK file format error: Don't name your first column 'ID'");
+            throw new Exception("SYLK file format error: Don't name your first column 'ID'");
         }
 
         return $labels->toArray();
@@ -88,7 +93,7 @@ class FlatfileExportConfiguration
         return Arr::get($this->configuration, "drivers.{$driver}.{$key}", $default);
     }
 
-    public function set($driver, $key, $value)
+    public function set($driver, $key, $value): array
     {
         return Arr::set($this->configuration, "drivers.{$driver}.{$key}", $value);
     }

@@ -1,11 +1,11 @@
 <?php
 
-namespace LaravelFlatfilesTest;
+namespace RealMediaTechnicStaudacher\LaravelFlatfilesTest;
 
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     //protected function getPackageProviders($app)
     //{
-    //    return ['LaravelFlatfiles\FlatfileExportServiceProvider'];
+    //    return ['RealMediaTechnicStaudacher\LaravelFlatfiles\FlatfileExportServiceProvider'];
     //}
 }

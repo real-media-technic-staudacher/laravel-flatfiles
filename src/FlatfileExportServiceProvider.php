@@ -3,11 +3,12 @@
  * Copyright (c) 2015-2018  real media technic staudacher.
  */
 
-namespace LaravelFlatfiles;
+namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 
-use Illuminate\Support\Arr;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
+use ReflectionMethod;
 
 /**
  * Class FlatfileExportServiceProvider.
@@ -18,6 +19,7 @@ class FlatfileExportServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      *
      * @return void
+     * @noinspection PhpUnusedParameterInspection
      */
     public function boot()
     {
@@ -27,7 +29,7 @@ class FlatfileExportServiceProvider extends ServiceProvider
             $config = new FlatfileExportConfiguration(config('flatfiles') ?: []);
             $fields = Arr::get($parameters, 'fields', Arr::first($parameters));
 
-            if (! $fields) {
+            if (!$fields) {
                 $fields = $this->fieldsFromAutoInjectingClass(debug_backtrace());
             }
 
@@ -47,8 +49,7 @@ class FlatfileExportServiceProvider extends ServiceProvider
 
     private function registerCommands()
     {
-        /* @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        $this->commands([//            \LaravelFlatfiles\Command::class,
+        $this->commands([
         ]);
     }
 
@@ -71,18 +72,20 @@ class FlatfileExportServiceProvider extends ServiceProvider
         $firstTry = collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
             if ('getMethodDependencies' != Arr::get($item, 'function')) {
-                return;
+                return null;
             }
 
             $classRequesting = Arr::get(Arr::get($item, 'args', []), '1.0');
 
-            if (! $classRequesting) {
-                return;
+            if (!$classRequesting) {
+                return null;
             }
 
             if ($classRequesting instanceof FlatfileFields) {
                 return $classRequesting;
             }
+
+            return null;
         })->filter()->first();
 
         if ($firstTry) {
@@ -92,21 +95,23 @@ class FlatfileExportServiceProvider extends ServiceProvider
         return collect($debugBacktrace)->transform(function ($item) {
             // Auto injection detected?
             if ('resolveMethodDependencies' != Arr::get($item, 'function')) {
-                return;
+                return null;
             }
 
             $classRequesting = Arr::get(Arr::get($item, 'args', []), '1');
 
-            if (! $classRequesting) {
-                return;
+            if (!$classRequesting) {
+                return null;
             }
 
-            if ($classRequesting instanceof \ReflectionMethod) {
+            if ($classRequesting instanceof ReflectionMethod) {
                 $objectOfClass = app($classRequesting->class);
                 if ($objectOfClass instanceof FlatfileFields) {
                     return $objectOfClass;
                 }
             }
+
+            return null;
         })->filter()->first();
     }
 }
