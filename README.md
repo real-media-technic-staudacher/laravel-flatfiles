@@ -6,7 +6,7 @@
 
 ## Installation
 
-    composer require real-media-technic-staudacher/laravel-flatfiles:dev-master
+    composer require real-media-technic-staudacher/laravel-flatfiles:^3.0
     
 To overwrite the default configuration
 
