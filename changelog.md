@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v3.0
+### Changed
+- Tiny but breaking changes (See upgrade hints in README.md)
+- Added return types to interfaces
+- New Namespace for the project is RealMediaTechnicStaudacher\LaravelFlatfiles
+- Changed signature of the field callback method to prevent this: `function ($null, Asset $asset)`
+
 ## v2.0.1
 ### Fixed
 - Fixed issue with local disks

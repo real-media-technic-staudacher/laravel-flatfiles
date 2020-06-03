@@ -224,3 +224,11 @@ use the following:
 By default, an exception getting thrown if the first column in the header row is named `ID`.
 Background for this is the SYLK formatting, which does not allow an flawless opening with Microsoft Excel in some Versions.
 You are free to disable the exception via the config `drivers.csv.ignore_sylk_exception` again.
+
+## Upgrade guide
+
+### To v3 from v2
+
+- Added return types. Also in interfaces. So mainly interfaces have to be checked: ie. `public function fields(): array;`. Tipp: Search for `public function fields(` across the whole project.
+- New Namespace. Change imports from `LaravelFlatfiles\*` to `RealMediaTechnicStaudacher\LaravelFlatfiles\*`
+- Changed order of callback paramters of field callback method to prevent `$null` in most of the calls `function ($null, Asset $asset)`. Now: `function (Asset $asset)`. Tipp: Search for `function ($null` and all `function fields` in your editor. 
