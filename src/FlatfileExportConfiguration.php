@@ -51,6 +51,15 @@ class FlatfileExportConfiguration
                 $key = $value;
             }
 
+            if ($value === '') {
+                return [
+                    'label' => $key,
+                    'callback' => function() {
+                        return '';
+                    },
+                ];
+            }
+
             if ($callback) {
                 return [
                     'column' => $key,

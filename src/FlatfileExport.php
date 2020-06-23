@@ -315,6 +315,10 @@ class FlatfileExport
         $addSequence = static function (array $row) use ($sequence) {
             $res = [];
             foreach ($row as $value) {
+                if (is_array($value)) {
+                    throw new RuntimeException('Cell value must not be an array: '.json_encode($row));
+                }
+
                 $res[] = $sequence.$value;
             }
 

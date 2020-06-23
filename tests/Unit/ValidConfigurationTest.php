@@ -29,6 +29,7 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
             'field_where_label_equals_field_with_callback' => function () {
                 return 'value';
             },
+            'Label for empty field' => '',
         ];
     }
 
@@ -67,6 +68,12 @@ class ValidConfigurationTest extends TestCase implements FlatfileFields
                 'label' => 'field_where_label_equals_field_with_callback',
                 'callback' => function () {
                     return 'value';
+                },
+            ],
+            [
+                'label' => 'Label for empty field',
+                'callback' => function ($field) {
+                    return '';
                 },
             ],
         ], $this->flatfile->configuration->fields()->values()->toArray());

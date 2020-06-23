@@ -188,8 +188,9 @@ The field defintions are pretty flexible. Better learn by examples by yourself
         ],
         'Column header' => function() { // For callbacks the header label can also be specified in the key! Crazy...
             return 'static cell content';
-        }
-    ]
+        },
+        'Empty cell' => '',
+    ];
 ```
 
 ## One row for each relation
