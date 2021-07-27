@@ -5,7 +5,7 @@ namespace RealMediaTechnicStaudacher\LaravelFlatfiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Enumerable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use League\Csv\CannotInsertRecord;
@@ -97,11 +97,11 @@ class FlatfileExport
     }
 
     /**
-     * @param  Collection|Model[]  $models
+     * @param  Enumerable|Model[]  $models
      *
      * @throws CannotInsertRecord
      */
-    public function addRows(Collection $models): void
+    public function addRows(Enumerable $models): void
     {
         foreach ($models as $model) {
             $this->addRow($model);
@@ -140,7 +140,7 @@ class FlatfileExport
     }
 
     /**
-     * @param  Model|Collection  $model
+     * @param  Model|Enumerable  $model
      *
      * @throws CannotInsertRecord
      */
@@ -262,9 +262,9 @@ class FlatfileExport
     }
 
     /**
-     * @param  Model|Collection  $model
+     * @param  Model|Enumerable  $model
      *
-     * @return Model|Collection
+     * @return Model|Enumerable
      */
     private function makeModelAttributesVisible($model)
     {
