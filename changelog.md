@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v4.0.1
+### Added
+- Add support for LazyCollections
+
 ## v4.0
 ### Added
 - Add support for Laravel 8

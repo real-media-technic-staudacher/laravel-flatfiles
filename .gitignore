@@ -1,2 +1,6 @@
 /composer.lock
 /vendor/
+/.idea/blade.xml
+/.idea/laravel-idea.xml
+/.idea/phpunit.xml
+/.idea/workspace.xml
