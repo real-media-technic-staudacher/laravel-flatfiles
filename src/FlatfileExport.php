@@ -112,7 +112,7 @@ class FlatfileExport
      * @param  Model  $model
      * @param  string|array  $relations  Name of child relation in model
      * @param  string  $alias  Name of attribute set with each model
-     * @param  bool  $skipWithoutRelations If there is no relation, skip line or not?
+     * @param  bool  $skipWithoutRelations  If there is no relation, skip line or not?
      * @return void
      * @throws CannotInsertRecord
      */
@@ -340,5 +340,16 @@ class FlatfileExport
     public function downloadResponse(string $filename = null, array $headers = [])
     {
         return $this->disk()->download($this->pathToFileOnDisk, $filename, $headers);
+    }
+
+    /**
+     * @param  string|null  $filename
+     * @param  array  $headers
+     *
+     * @return BinaryFileResponse
+     */
+    public function downloadAndDeleteAfterResponse(string $filename = null, array $headers = [])
+    {
+        return response()->download($this->disk()->path($filename), $filename, $headers)->deleteFileAfterSend(true);
     }
 }
