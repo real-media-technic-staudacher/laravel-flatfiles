@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## v4.1.0
+### Changed
+- Way easier method to support field enclosure
+
 ## v4.0.2
 ### Added
 - Support for deleting export file after download

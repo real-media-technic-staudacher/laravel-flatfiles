@@ -9,9 +9,9 @@ use Illuminate\Support\Enumerable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use League\Csv\CannotInsertRecord;
+use League\Csv\EncloseField;
 use League\Csv\Writer;
 use League\Flysystem\Adapter\Local;
-use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -220,7 +220,7 @@ class FlatfileExport
                 $this->writer->setEnclosure($this->configuration->get('csv', 'enclosure'));
 
                 if ($this->configuration->get('csv', 'force_enclosure')) {
-                    $this->addForceEnclosure();
+                    EncloseField::addTo($this->writer, "\t\x1f");
                 }
 
                 $this->writer->setOutputBOM($this->configuration->get('csv', 'bom') ? Writer::BOM_UTF8 : '');
@@ -304,31 +304,6 @@ class FlatfileExport
         $model::$snakeAttributes = $snake;
 
         return $dataAsArray;
-    }
-
-    /**
-     * adding an StreamFilter to force the enclosure of each cell.
-     */
-    private function addForceEnclosure(): void
-    {
-        $sequence = "\t\x1f";
-        $addSequence = static function (array $row) use ($sequence) {
-            $res = [];
-            foreach ($row as $value) {
-                if (is_array($value)) {
-                    throw new RuntimeException('Cell value must not be an array: '.json_encode($row));
-                }
-
-                $res[] = $sequence.$value;
-            }
-
-            return $res;
-        };
-
-        $this->writer->addFormatter($addSequence);
-        RemoveSequence::registerStreamFilter();
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $this->writer->addStreamFilter(RemoveSequence::createFilterName($this->writer, $sequence));
     }
 
     /**
