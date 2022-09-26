@@ -285,7 +285,7 @@ class FlatfileExport
 
     public function checkbom(): bool
     {
-        $str = file_get_contents($this->pathToLocalTmpFile);
+        $str = file_get_contents($this->pathToLocalTmpFile, false, null, 0, 12);
         $bom = pack('CCC', 0xef, 0xbb, 0xbf);
 
         return 0 === strncmp($str, $bom, 3);
