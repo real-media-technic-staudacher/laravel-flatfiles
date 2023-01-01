@@ -6,12 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Enumerable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use League\Csv\CannotInsertRecord;
 use League\Csv\EncloseField;
 use League\Csv\Writer;
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use RealMediaTechnicStaudacher\LaravelFlatfiles\StreamFilters\RemoveSequence;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -177,14 +180,17 @@ class FlatfileExport
         $this->addBomIfNeeded();
 
         /** @noinspection PhpUndefinedMethodInspection */
-        if ($this->disk->getAdapter() instanceof Local
+        if ($this->disk->getAdapter() instanceof LocalFilesystemAdapter
             && $this->disk->path($this->pathToFileOnDisk) === $this->pathToLocalTmpFile) {
             // No temp file that has be moved
             return true;
         }
 
-        if ($this->disk->putStream($this->pathToFileOnDisk, fopen($this->pathToLocalTmpFile, 'rb'))) {
-            return unlink($this->pathToLocalTmpFile);
+        try {
+            $this->disk->writeStream($this->pathToFileOnDisk, fopen($this->pathToLocalTmpFile, 'rb'));
+            unlink($this->pathToLocalTmpFile);
+        } catch (FilesystemException $e) {
+            Log::error('Could not write file '.$e->getMessage());
         }
 
         return false;
@@ -198,7 +204,7 @@ class FlatfileExport
             case 'csv':
                 if (!$this->pathToLocalTmpFile) {
                     /** @noinspection PhpUndefinedMethodInspection */
-                    if ($this->disk->getAdapter() instanceof Local) {
+                    if ($this->disk->getAdapter() instanceof LocalFilesystemAdapter) {
                         $this->pathToLocalTmpFile = $this->disk->path($this->pathToFileOnDisk);
 
                         $localFileDirectory = pathinfo($this->pathToLocalTmpFile, PATHINFO_DIRNAME);
