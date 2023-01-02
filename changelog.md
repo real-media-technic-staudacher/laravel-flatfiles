@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## v5.0
 ## v5.0.1
+## v5.0.2
 ### Changed
 - Added support for Laravel 9 + PHP > v8.0
 
